@@ -3,46 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Настройка VPN</title>
+    <title>Установка VPN подписки</title>
     <style>
-        body { font-family: -apple-system, sans-serif; text-align: center; padding-top: 30%; background: #f0f2f5; color: #333; }
-        .loader { border: 4px solid #ddd; border-top: 4px solid #007aff; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-        .btn { display: none; margin-top: 20px; padding: 12px 24px; background: #007aff; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            text-align: center; 
+            background: #f4f5f7; 
+            color: #1c1c1e; 
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 30px 20px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            max-width: 400px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        h2 { margin-top: 0; font-size: 22px; margin-bottom: 10px; }
+        p { color: #8e8e93; font-size: 15px; margin-bottom: 25px; line-height: 1.4; }
+        
+        /* Скрываем блоки по умолчанию */
+        #ios-block, #android-block, #pc-block, #error-block { display: none; }
+        
+        .btn { 
+            display: block; 
+            width: 100%; 
+            padding: 14px 20px; 
+            margin-bottom: 12px; 
+            border-radius: 12px; 
+            font-size: 16px; 
+            font-weight: 600; 
+            text-decoration: none; 
+            color: white; 
+            border: none;
+            cursor: pointer;
+            box-sizing: border-box;
+            transition: opacity 0.2s;
+        }
+        .btn:active { opacity: 0.8; }
+        
+        /* Цвета кнопок */
+        .btn-v2box { background: #007aff; }
+        .btn-happ { background: #FF2D55; }
+        .btn-nekobox { background: #FF9500; }
+        .btn-hiddify { background: #5856D6; }
+        .btn-copy { background: #34C759; }
+        
+        .toast {
+            position: fixed;
+            bottom: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            transition: bottom 0.3s ease;
+        }
     </style>
 </head>
 <body>
-    <div class="loader" id="spinner"></div>
-    <h2 id="status">Открываем V2Box...</h2>
-    <a href="#" id="manualBtn" class="btn">Открыть вручную</a>
+
+    <div class="container">
+        <h2>Настройка VPN</h2>
+        <p id="subtitle">Выберите приложение, которое у вас установлено</p>
+
+        <div id="error-block">
+            <p style="color: #ff3b30;">Ошибка: Ссылка на подписку не найдена.</p>
+        </div>
+
+        <div id="ios-block">
+            <button class="btn btn-v2box" onclick="connectApp('v2box')">🍏 Открыть в V2Box</button>
+            <button class="btn btn-happ" onclick="connectApp('happ')">🍏 Открыть в Happ</button>
+        </div>
+
+        <div id="android-block">
+            <button class="btn btn-nekobox" onclick="connectApp('nekobox')">🤖 Открыть в NekoBox</button>
+            <button class="btn btn-happ" onclick="connectApp('happ')">🤖 Открыть в Happ</button>
+            <button class="btn btn-hiddify" onclick="connectApp('hiddify')">🤖 Открыть в Hiddify</button>
+        </div>
+
+        <div id="pc-block">
+            <button class="btn btn-copy" id="copyBtn" onclick="copyOnly()">📋 Скопировать ссылку</button>
+            <p style="margin-top: 15px; font-size: 13px;">Откройте VPN-клиент на ПК и вставьте ссылку.</p>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">Ссылка скопирована!</div>
 
     <script>
-        window.onload = function() {
-            // Читаем ссылку на подписку, которую передал бот в URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const subUrl = urlParams.get('sub');
-            const name = urlParams.get('name') || 'VPN';
+        // Получаем данные из URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const subUrl = urlParams.get('sub');
+        const name = urlParams.get('name') || 'VPN';
 
-            if (subUrl) {
-                // Формируем системную команду для айфона
-                const deepLink = "v2box://install-sub?url=" + encodeURIComponent(subUrl) + "&name=" + encodeURIComponent(name);
-                
-                // Главная магия: автоматически перенаправляем в приложение!
-                window.location.href = deepLink;
-
-                // Запасной вариант (показываем кнопку, если iOS заблокировал автопереход)
-                setTimeout(() => {
-                    document.getElementById('spinner').style.display = 'none';
-                    document.getElementById('status').innerText = 'Если приложение не открылось:';
-                    const btn = document.getElementById('manualBtn');
-                    btn.href = deepLink;
-                    btn.style.display = 'inline-block';
-                }, 1500);
+        if (!subUrl) {
+            document.getElementById('subtitle').style.display = 'none';
+            document.getElementById('error-block').style.display = 'block';
+        } else {
+            // Определяем устройство
+            const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+            
+            if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+                document.getElementById('ios-block').style.display = 'block';
+            } else if (/android/i.test(userAgent)) {
+                document.getElementById('android-block').style.display = 'block';
             } else {
-                document.getElementById('spinner').style.display = 'none';
-                document.getElementById('status').innerText = 'Ошибка: ссылка не найдена.';
+                document.getElementById('pc-block').style.display = 'block';
             }
-        };
+        }
+
+        // Функция подключения
+        function connectApp(client) {
+            if (!subUrl) return;
+
+            // 1. Страховочное копирование в буфер
+            navigator.clipboard.writeText(subUrl).catch(e => console.log('Clipboard fallback failed'));
+            showToast();
+
+            // 2. Формируем диплинк для конкретного приложения
+            const encodedUrl = encodeURIComponent(subUrl);
+            const encodedName = encodeURIComponent(name);
+            let deepLink = "";
+
+            if (client === 'v2box') deepLink = "v2box://install-sub?url=" + encodedUrl + "&name=" + encodedName;
+            if (client === 'happ') deepLink = "happ://install-sub?url=" + encodedUrl + "&name=" + encodedName;
+            if (client === 'nekobox') deepLink = "nekobox://install-sub?url=" + encodedUrl + "&name=" + encodedName;
+            if (client === 'hiddify') deepLink = "hiddify://install-config?url=" + encodedUrl + "&name=" + encodedName;
+
+            // 3. Открываем приложение
+            setTimeout(() => {
+                window.location.href = deepLink;
+            }, 300);
+        }
+
+        function copyOnly() {
+            if (!subUrl) return;
+            navigator.clipboard.writeText(subUrl).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.innerText = "✅ Скопировано";
+                showToast();
+                setTimeout(() => btn.innerText = "📋 Скопировать ссылку", 2000);
+            });
+        }
+
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.style.bottom = "30px";
+            setTimeout(() => { toast.style.bottom = "-50px"; }, 2500);
+        }
     </script>
 </body>
 </html>
