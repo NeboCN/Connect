@@ -93,8 +93,103 @@
         </div>
 
         <div id="pc-block">
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Установка защищённого туннеля</title>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            text-align: center; 
+            background: #f4f5f7; 
+            color: #1c1c1e; 
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 30px 20px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            max-width: 400px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        h2 { margin-top: 0; font-size: 22px; margin-bottom: 10px; }
+        p { color: #8e8e93; font-size: 15px; margin-bottom: 25px; line-height: 1.4; }
+        
+        /* Скрываем блоки по умолчанию */
+        #ios-block, #android-block, #pc-block, #error-block { display: none; }
+        
+        .btn { 
+            display: block; 
+            width: 100%; 
+            padding: 14px 20px; 
+            margin-bottom: 12px; 
+            border-radius: 12px; 
+            font-size: 16px; 
+            font-weight: 600; 
+            text-decoration: none; 
+            color: white; 
+            border: none;
+            cursor: pointer;
+            box-sizing: border-box;
+            transition: opacity 0.2s;
+        }
+        .btn:active { opacity: 0.8; }
+        
+        /* Цвета кнопок */
+        .btn-v2box { background: #007aff; }
+        .btn-happ { background: #FF2D55; }
+        .btn-nekobox { background: #FF9500; }
+        .btn-hiddify { background: #5856D6; }
+        .btn-copy { background: #34C759; }
+        
+        .toast {
+            position: fixed;
+            bottom: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            transition: bottom 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Установка защищённого туннеля</h2>
+        <p id="subtitle">Выберите приложение для настройки</p>
+
+        <div id="error-block">
+            <p style="color: #ff3b30;">Ошибка: Ссылка на профиль не найдена.</p>
+        </div>
+
+        <div id="ios-block">
+            <button class="btn btn-v2box" onclick="connectApp('v2box')">🍏 Открыть в V2Box</button>
+            <button class="btn btn-happ" onclick="connectApp('happ')">🍏 Открыть в Happ</button>
+        </div>
+
+        <div id="android-block">
+            <button class="btn btn-nekobox" onclick="connectApp('nekobox')">🤖 Открыть в NekoBox</button>
+            <button class="btn btn-happ" onclick="connectApp('happ')">🤖 Открыть в Happ</button>
+            <button class="btn btn-hiddify" onclick="connectApp('hiddify')">🤖 Открыть в Hiddify</button>
+        </div>
+
+        <div id="pc-block">
             <button class="btn btn-copy" id="copyBtn" onclick="copyOnly()">📋 Скопировать ссылку</button>
-            <p style="margin-top: 15px; font-size: 13px;">Откройте VPN-клиент на ПК и вставьте ссылку.</p>
+            <p style="margin-top: 15px; font-size: 13px;">Откройте приложение-клиент на ПК и вставьте ссылку.</p>
         </div>
     </div>
 
@@ -104,7 +199,7 @@
         // Получаем данные из URL
         const urlParams = new URLSearchParams(window.location.search);
         const subUrl = urlParams.get('sub');
-        const name = urlParams.get('name') || 'VPN';
+        const name = urlParams.get('name') || 'Туннель';
 
         if (!subUrl) {
             document.getElementById('subtitle').style.display = 'none';
@@ -164,3 +259,4 @@
     </script>
 </body>
 </html>
+
