@@ -30,7 +30,6 @@
         h2 { margin-top: 0; font-size: 22px; margin-bottom: 10px; }
         p { color: #8e8e93; font-size: 15px; margin-bottom: 25px; line-height: 1.4; }
         
-        /* Скрываем блоки по умолчанию */
         #ios-block, #android-block, #pc-block, #error-block { display: none; }
         
         .btn { 
@@ -50,7 +49,6 @@
         }
         .btn:active { opacity: 0.8; }
         
-        /* Цвета кнопок */
         .btn-v2box { background: #007aff; }
         .btn-happ { background: #FF2D55; }
         .btn-nekobox { background: #FF9500; }
@@ -68,7 +66,33 @@
             border-radius: 20px;
             font-size: 14px;
             transition: bottom 0.3s ease;
+            z-index: 2000;
         }
+
+        /* Стили для затемнения и всплывающего окна инструкции */
+        .overlay {
+            display: none; 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.5); 
+            z-index: 1000; 
+            align-items: center; 
+            justify-content: center;
+            backdrop-filter: blur(3px);
+        }
+        .modal {
+            background: white; 
+            padding: 25px; 
+            border-radius: 20px; 
+            text-align: left; /* Текст инструкции лучше читается по левому краю */
+            max-width: 320px; 
+            width: 90%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .modal h3 { margin-top: 0; text-align: center; color: #1c1c1e; font-size: 20px; margin-bottom: 15px;}
+        .modal p { color: #333; font-size: 14px; margin-bottom: 20px; line-height: 1.5; }
+        .modal-btn { background: #007aff; color: white; border: none; padding: 14px 20px; border-radius: 12px; font-weight: bold; width: 100%; font-size: 16px; cursor: pointer; text-align: center; }
     </style>
 </head>
 <body>
@@ -98,21 +122,29 @@
         </div>
     </div>
 
+    <div class="overlay" id="instructionOverlay">
+        <div class="modal">
+            <h3>✅ Ссылка скопирована!</h3>
+            <p>Сейчас откроется приложение Happ. Чтобы добавить туннель:</p>
+            <p>🔹 <b>Если экран пустой:</b> нажмите синюю кнопку <b>«Из Буфера»</b> в самом низу.<br><br>
+               🔹 <b>Если есть старые настройки:</b> нажмите <b>плюсик (+)</b> в правом верхнем углу и выберите <b>«Импорт из буфера обмена»</b>.</p>
+            <button class="modal-btn" onclick="proceedToApp()">Понятно, открыть приложение</button>
+        </div>
+    </div>
+
     <div class="toast" id="toast">Ссылка скопирована!</div>
 
     <script>
-        // Получаем данные из URL
         const urlParams = new URLSearchParams(window.location.search);
         const subUrl = urlParams.get('sub');
         const name = urlParams.get('name') || 'Туннель';
+        let currentDeepLink = "";
 
         if (!subUrl) {
             document.getElementById('subtitle').style.display = 'none';
             document.getElementById('error-block').style.display = 'block';
         } else {
-            // Определяем устройство
             const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-            
             if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
                 document.getElementById('ios-block').style.display = 'block';
             } else if (/android/i.test(userAgent)) {
@@ -122,28 +154,37 @@
             }
         }
 
-        // Функция подключения
         function connectApp(client) {
             if (!subUrl) return;
 
-            // 1. Страховочное копирование в буфер
             navigator.clipboard.writeText(subUrl).catch(e => console.log('Clipboard fallback failed'));
             showToast();
 
-            // 2. Формируем диплинк для конкретного приложения
             const encodedUrl = encodeURIComponent(subUrl);
             const encodedName = encodeURIComponent(name);
-            let deepLink = "";
 
-            if (client === 'v2box') deepLink = "v2box://install-sub?url=" + encodedUrl + "&name=" + encodedName;
-            if (client === 'happ') deepLink = "happ://install-sub?url=" + encodedUrl + "&name=" + encodedName;
-            if (client === 'nekobox') deepLink = "nekobox://install-sub?url=" + encodedUrl + "&name=" + encodedName;
-            if (client === 'hiddify') deepLink = "hiddify://install-config?url=" + encodedUrl + "&name=" + encodedName;
+            // Если это Happ — показываем окно с инструкцией и останавливаем автоматический переход
+            if (client === 'happ') {
+                currentDeepLink = "happ://";
+                document.getElementById('instructionOverlay').style.display = 'flex';
+                return; 
+            }
 
-            // 3. Открываем приложение
+            // Для остальных формируем прямую ссылку на импорт
+            if (client === 'v2box') currentDeepLink = "v2box://install-sub?url=" + encodedUrl + "&name=" + encodedName;
+            if (client === 'nekobox') currentDeepLink = "nekobox://install-sub?url=" + encodedUrl + "&name=" + encodedName;
+            if (client === 'hiddify') currentDeepLink = "hiddify://install-config?url=" + encodedUrl + "&name=" + encodedName;
+
+            // Запускаем автоматически
             setTimeout(() => {
-                window.location.href = deepLink;
+                window.location.href = currentDeepLink;
             }, 300);
+        }
+
+        // Функция срабатывает, когда пользователь прочитал инструкцию и нажал кнопку
+        function proceedToApp() {
+            document.getElementById('instructionOverlay').style.display = 'none';
+            window.location.href = currentDeepLink;
         }
 
         function copyOnly() {
