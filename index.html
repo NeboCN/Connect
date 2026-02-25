@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Настройка VPN</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; text-align: center; padding-top: 30%; background: #f0f2f5; color: #333; }
+        .loader { border: 4px solid #ddd; border-top: 4px solid #007aff; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .btn { display: none; margin-top: 20px; padding: 12px 24px; background: #007aff; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="loader" id="spinner"></div>
+    <h2 id="status">Открываем V2Box...</h2>
+    <a href="#" id="manualBtn" class="btn">Открыть вручную</a>
+
+    <script>
+        window.onload = function() {
+            // Читаем ссылку на подписку, которую передал бот в URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const subUrl = urlParams.get('sub');
+            const name = urlParams.get('name') || 'VPN';
+
+            if (subUrl) {
+                // Формируем системную команду для айфона
+                const deepLink = "v2box://install-sub?url=" + encodeURIComponent(subUrl) + "&name=" + encodeURIComponent(name);
+                
+                // Главная магия: автоматически перенаправляем в приложение!
+                window.location.href = deepLink;
+
+                // Запасной вариант (показываем кнопку, если iOS заблокировал автопереход)
+                setTimeout(() => {
+                    document.getElementById('spinner').style.display = 'none';
+                    document.getElementById('status').innerText = 'Если приложение не открылось:';
+                    const btn = document.getElementById('manualBtn');
+                    btn.href = deepLink;
+                    btn.style.display = 'inline-block';
+                }, 1500);
+            } else {
+                document.getElementById('spinner').style.display = 'none';
+                document.getElementById('status').innerText = 'Ошибка: ссылка не найдена.';
+            }
+        };
+    </script>
+</body>
+</html>
