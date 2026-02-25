@@ -51,7 +51,6 @@
         
         .btn-v2box { background: #007aff; }
         .btn-happ { background: #FF2D55; }
-        .btn-nekobox { background: #FF9500; }
         .btn-hiddify { background: #5856D6; }
         .btn-copy { background: #34C759; }
         
@@ -69,7 +68,7 @@
             z-index: 2000;
         }
 
-        /* Стили для затемнения и всплывающего окна инструкции */
+        /* Стили для затемнения и динамического окна */
         .overlay {
             display: none; 
             position: fixed; 
@@ -85,7 +84,7 @@
             background: white; 
             padding: 25px; 
             border-radius: 20px; 
-            text-align: left; /* Текст инструкции лучше читается по левому краю */
+            text-align: left; 
             max-width: 320px; 
             width: 90%;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
@@ -111,7 +110,6 @@
         </div>
 
         <div id="android-block">
-            <button class="btn btn-nekobox" onclick="connectApp('nekobox')">🤖 Открыть в NekoBox</button>
             <button class="btn btn-happ" onclick="connectApp('happ')">🤖 Открыть в Happ</button>
             <button class="btn btn-hiddify" onclick="connectApp('hiddify')">🤖 Открыть в Hiddify</button>
         </div>
@@ -125,10 +123,9 @@
     <div class="overlay" id="instructionOverlay">
         <div class="modal">
             <h3>✅ Ссылка скопирована!</h3>
-            <p>Сейчас откроется приложение Happ. Чтобы добавить туннель:</p>
-            <p>🔹 <b>Если экран пустой:</b> нажмите синюю кнопку <b>«Из Буфера»</b> в самом низу.<br><br>
-               🔹 <b>Если есть старые настройки:</b> нажмите <b>плюсик (+)</b> в правом верхнем углу и выберите <b>«Импорт из буфера обмена»</b>.</p>
-            <button class="modal-btn" onclick="proceedToApp()">Понятно, открыть приложение</button>
+            <p>Сейчас мы попытаемся открыть <b id="modalAppName">Приложение</b>. Если оно не открылось автоматически, просто запустите его вручную.</p>
+            <p id="modalInstruction">Здесь будет инструкция</p>
+            <button class="modal-btn" onclick="proceedToApp()">Понятно, продолжить</button>
         </div>
     </div>
 
@@ -157,31 +154,39 @@
         function connectApp(client) {
             if (!subUrl) return;
 
+            // Надежно копируем в буфер перед любыми действиями
             navigator.clipboard.writeText(subUrl).catch(e => console.log('Clipboard fallback failed'));
-            showToast();
 
             const encodedUrl = encodeURIComponent(subUrl);
             const encodedName = encodeURIComponent(name);
+            
+            let appName = "";
+            let instructionHtml = "";
 
-            // Если это Happ — показываем окно с инструкцией и останавливаем автоматический переход
-            if (client === 'happ') {
+            // Настраиваем логику и тексты в зависимости от приложения
+            if (client === 'v2box') {
+                currentDeepLink = "v2box://install-sub?url=" + encodedUrl + "&name=" + encodedName;
+                appName = "V2Box";
+                instructionHtml = "Если туннель не добавился сам, нажмите <b>плюсик (+)</b> в правом верхнем углу и выберите <b>«Import Custom Clipboard»</b> (или Импорт из буфера).";
+            
+            } else if (client === 'happ') {
                 currentDeepLink = "happ://";
-                document.getElementById('instructionOverlay').style.display = 'flex';
-                return; 
+                appName = "Happ";
+                instructionHtml = "🔹 <b>Если экран пустой:</b> нажмите синюю кнопку <b>«Из Буфера»</b> в самом низу.<br><br>🔹 <b>Если есть старые настройки:</b> нажмите <b>плюсик (+)</b> в правом верхнем углу и выберите <b>«Импорт из буфера обмена»</b>.";
+            
+            } else if (client === 'hiddify') {
+                currentDeepLink = "hiddify://install-config?url=" + encodedUrl + "&name=" + encodedName;
+                appName = "Hiddify";
+                instructionHtml = "Нажмите на <b>плюсик (+)</b> в правом верхнем углу, затем выберите <b>«Добавить из буфера обмена»</b> (или вставьте скопированную ссылку-ключ), и ваша подписка будет активирована.";
             }
 
-            // Для остальных формируем прямую ссылку на импорт
-            if (client === 'v2box') currentDeepLink = "v2box://install-sub?url=" + encodedUrl + "&name=" + encodedName;
-            if (client === 'nekobox') currentDeepLink = "nekobox://install-sub?url=" + encodedUrl + "&name=" + encodedName;
-            if (client === 'hiddify') currentDeepLink = "hiddify://install-config?url=" + encodedUrl + "&name=" + encodedName;
-
-            // Запускаем автоматически
-            setTimeout(() => {
-                window.location.href = currentDeepLink;
-            }, 300);
+            // Подставляем тексты в окно и показываем его
+            document.getElementById('modalAppName').innerText = appName;
+            document.getElementById('modalInstruction').innerHTML = instructionHtml;
+            document.getElementById('instructionOverlay').style.display = 'flex';
         }
 
-        // Функция срабатывает, когда пользователь прочитал инструкцию и нажал кнопку
+        // Запуск после прочтения инструкции
         function proceedToApp() {
             document.getElementById('instructionOverlay').style.display = 'none';
             window.location.href = currentDeepLink;
@@ -192,15 +197,11 @@
             navigator.clipboard.writeText(subUrl).then(() => {
                 const btn = document.getElementById('copyBtn');
                 btn.innerText = "✅ Скопировано";
-                showToast();
+                const toast = document.getElementById('toast');
+                toast.style.bottom = "30px";
+                setTimeout(() => { toast.style.bottom = "-50px"; }, 2500);
                 setTimeout(() => btn.innerText = "📋 Скопировать ссылку", 2000);
             });
-        }
-
-        function showToast() {
-            const toast = document.getElementById('toast');
-            toast.style.bottom = "30px";
-            setTimeout(() => { toast.style.bottom = "-50px"; }, 2500);
         }
     </script>
 </body>
