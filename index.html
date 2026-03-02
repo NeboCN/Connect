@@ -17,8 +17,8 @@
         .btn-v2box { background: #007aff; }
         .btn-happ { background: #FF2D55; }
         .btn-hiddify { background: #5856D6; }
-        /* Добавлен цвет для новой кнопки V2Ray Tune */
-        .btn-v2raytune { background: #FF9500; } 
+        /* Оранжевый цвет для кнопки V2 Tune */
+        .btn-v2tune { background: #FF9500; } 
         .btn-copy { background: #34C759; }
     </style>
 </head>
@@ -30,7 +30,7 @@
         <div id="error-block"><p style="color: #ff3b30;">Ошибка: Ссылка не передана.</p></div>
         
         <div id="ios-block">
-            <a id="link-ios-v2raytune" class="btn btn-v2raytune" href="#">🍏 Настроить в V2Ray Tune</a>
+            <a id="link-ios-v2tune" class="btn btn-v2tune" href="#">🍏 Настроить в V2 Tune</a>
             <a id="link-ios-happ" class="btn btn-happ" href="#">🍏 Настроить в Happ</a>
             <a id="link-ios-v2box" class="btn btn-v2box" href="#">🍏 Настроить в V2Box</a>
         </div>
@@ -62,8 +62,9 @@
             const happLink = "happ://install-config?url=" + encodedUrl + "&name=" + encodedName;
             const hiddifyLink = "hiddify://install-config?url=" + encodedUrl + "&name=" + encodedName;
             const v2boxLink = "v2box://install-sub?url=" + encodedUrl + "&name=" + encodedName;
-            // Ссылка для V2Ray Tune
-            const v2rayTuneLink = "v2raytune://install-sub?url=" + encodedUrl + "&name=" + encodedName;
+            
+            // ИСПРАВЛЕННАЯ ССЫЛКА: v2raytun:// (без буквы 'e' на конце)
+            const v2TuneLink = "v2raytun://install-config?url=" + encodedUrl + "&name=" + encodedName;
 
             const userAgent = navigator.userAgent || navigator.vendor || window.opera;
             
@@ -71,7 +72,7 @@
                 document.getElementById('ios-block').style.display = 'block';
                 
                 // Раздаем готовые ссылки кнопкам
-                document.getElementById('link-ios-v2raytune').href = v2rayTuneLink;
+                document.getElementById('link-ios-v2tune').href = v2TuneLink;
                 document.getElementById('link-ios-happ').href = happLink;
                 document.getElementById('link-ios-v2box').href = v2boxLink;
             } else if (/android/i.test(userAgent)) {
