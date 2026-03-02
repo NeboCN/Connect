@@ -1,85 +1,120 @@
-<script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const subUrl = urlParams.get('sub');
-    const name = urlParams.get('name') || 'NeboVPN';
-    let currentDeepLink = "";
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Установка защищённого туннеля</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; text-align: center; background: #f4f5f7; color: #1c1c1e; padding: 20px; margin: 0; display: flex; flex-direction: column; justify-content: center; min-height: 100vh; }
+        .container { background: white; padding: 30px 20px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); max-width: 400px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+        h2 { margin-top: 0; font-size: 22px; margin-bottom: 10px; }
+        p { color: #8e8e93; font-size: 15px; margin-bottom: 25px; line-height: 1.4; }
+        #ios-block, #android-block, #pc-block, #error-block { display: none; }
+        
+        /* Кнопки теперь настоящие ссылки, но выглядят так же */
+        .btn { display: block; width: 100%; padding: 14px 20px; margin-bottom: 12px; border-radius: 12px; font-size: 16px; font-weight: 600; text-decoration: none; color: white; border: none; cursor: pointer; box-sizing: border-box; transition: opacity 0.2s; text-align: center; }
+        .btn:active { opacity: 0.8; }
+        .btn-v2box { background: #007aff; }
+        .btn-happ { background: #FF2D55; }
+        .btn-hiddify { background: #5856D6; }
+        .btn-copy { background: #34C759; }
+        
+        .toast { position: fixed; bottom: -50px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; border-radius: 20px; font-size: 14px; transition: bottom 0.3s ease; z-index: 2000; }
+        .telegram-warning { background: #fff3cd; color: #856404; padding: 12px; border-radius: 10px; font-size: 13px; margin-bottom: 15px; border: 1px solid #ffeeba; text-align: left; display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Установка защищённого туннеля</h2>
+        <p id="subtitle">Выберите приложение для настройки</p>
+        
+        <div id="telegram-warning" class="telegram-warning">
+            ⚠️ <b>Внимание:</b> Если кнопка не нажимается, нажмите на три точки (⋮) в правом верхнем углу и выберите <b>«Открыть в браузере»</b>.
+        </div>
+
+        <div id="error-block"><p style="color: #ff3b30;">Ошибка: Ссылка на профиль не найдена.</p></div>
+        
+        <div id="ios-block">
+            <a id="btn-ios-happ" class="btn btn-happ" href="#">🍏 Открыть в Happ</a>
+            <a id="btn-ios-v2box" class="btn btn-v2box" href="#">🍏 Открыть в V2Box</a>
+        </div>
+        
+        <div id="android-block">
+            <a id="btn-and-happ" class="btn btn-happ" href="#">🤖 Открыть в Happ</a>
+            <a id="btn-and-hiddify" class="btn btn-hiddify" href="#">🤖 Открыть в Hiddify</a>
+        </div>
+        
+        <div id="pc-block">
+            <button class="btn btn-copy" id="copyBtn" onclick="copyOnly()">📋 Скопировать ссылку</button>
+            <p style="margin-top: 15px; font-size: 13px;">Откройте приложение-клиент на ПК и вставьте ссылку.</p>
+        </div>
+    </div>
     
-    if (!subUrl) {
-        document.getElementById('subtitle').style.display = 'none';
-        document.getElementById('error-block').style.display = 'block';
-    } else {
-        const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-        if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
-            document.getElementById('ios-block').style.display = 'block';
-        } else if (/android/i.test(userAgent)) {
-            document.getElementById('android-block').style.display = 'block';
+    <div class="toast" id="toast">Ссылка скопирована!</div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const subUrl = urlParams.get('sub');
+        const name = urlParams.get('name') || 'NeboVPN';
+        
+        // Определяем, открыт ли сайт внутри браузера Telegram
+        const isTelegram = /Telegram/i.test(navigator.userAgent);
+        if (isTelegram) {
+            document.getElementById('telegram-warning').style.display = 'block';
+        }
+
+        if (!subUrl) {
+            document.getElementById('subtitle').style.display = 'none';
+            document.getElementById('error-block').style.display = 'block';
         } else {
-            document.getElementById('pc-block').style.display = 'block';
+            const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+            const encodedUrl = encodeURIComponent(subUrl);
+            const encodedName = encodeURIComponent(name);
+
+            // Формируем системные ссылки
+            const happLink = "happ://install-config?url=" + encodedUrl + "&name=" + encodedName;
+            const hiddifyLink = "hiddify://install-config?url=" + encodedUrl + "&name=" + encodedName;
+            const v2boxLink = "v2box://install-sub?url=" + encodedUrl + "&name=" + encodedName;
+
+            // Показываем нужный блок и "подшиваем" ссылки прямо в кнопки при загрузке страницы
+            if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+                document.getElementById('ios-block').style.display = 'block';
+                document.getElementById('btn-ios-happ').href = happLink;
+                document.getElementById('btn-ios-v2box').href = v2boxLink;
+                
+                // Навешиваем страховочное копирование
+                document.getElementById('btn-ios-happ').addEventListener('click', () => fallbackCopy(subUrl));
+            } else if (/android/i.test(userAgent)) {
+                document.getElementById('android-block').style.display = 'block';
+                document.getElementById('btn-and-happ').href = happLink;
+                document.getElementById('btn-and-hiddify').href = hiddifyLink;
+                
+                document.getElementById('btn-and-happ').addEventListener('click', () => fallbackCopy(subUrl));
+            } else {
+                document.getElementById('pc-block').style.display = 'block';
+            }
         }
-    }
 
-    function connectApp(client) {
-        if (!subUrl) return;
-
-        const encodedUrl = encodeURIComponent(subUrl);
-        const encodedName = encodeURIComponent(name);
-        let appName = ""; 
-        let instructionHtml = "";
-
-        if (client === 'v2box') {
-            currentDeepLink = "v2box://install-sub?url=" + encodedUrl + "&name=" + encodedName;
-            appName = "V2Box";
-        } else if (client === 'happ') {
-            // Главный стандарт для ядер Xray: install-config
-            currentDeepLink = "happ://install-config?url=" + encodedUrl + "&name=" + encodedName;
-            appName = "Happ";
-        } else if (client === 'hiddify') {
-            currentDeepLink = "hiddify://install-config?url=" + encodedUrl + "&name=" + encodedName;
-            appName = "Hiddify";
+        function fallbackCopy(text) {
+            // Тихое копирование на случай, если приложение не сработает
+            const tempInput = document.createElement("input");
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            try { document.execCommand("copy"); } catch(e) {}
+            document.body.removeChild(tempInput);
         }
 
-        instructionHtml = "✅ Подписка должна добавиться <b>автоматически</b>!<br><br>Если магия не сработала, мы 100% надежно скопировали ваш ключ. Просто нажмите <b>«Из Буфера»</b> или плюсик в приложении.";
-        
-        document.getElementById('modalAppName').innerText = appName;
-        document.getElementById('modalInstruction').innerHTML = instructionHtml;
-
-        // БРОНЕБОЙНОЕ КОПИРОВАНИЕ:
-        // Сначала синхронно копируем через старый метод (работает везде)
-        const tempInput = document.createElement("input");
-        tempInput.value = subUrl;
-        document.body.appendChild(tempInput);
-        tempInput.select();
-        document.execCommand("copy");
-        document.body.removeChild(tempInput);
-
-        // Затем показываем окно (на случай если юзер вернется)
-        document.getElementById('instructionOverlay').style.display = 'flex';
-        
-        // И только потом совершаем переход, чтобы браузер не убил процесс!
-        setTimeout(() => {
-            window.location.href = currentDeepLink;
-        }, 300); // Крошечная пауза в 0.3 секунды спасает буфер обмена
-    }
-
-    function proceedToApp() {
-        document.getElementById('instructionOverlay').style.display = 'none';
-        window.location.href = currentDeepLink;
-    }
-
-    function copyOnly() {
-        if (!subUrl) return;
-        const tempInput = document.createElement("input");
-        tempInput.value = subUrl;
-        document.body.appendChild(tempInput);
-        tempInput.select();
-        document.execCommand("copy");
-        document.body.removeChild(tempInput);
-        
-        const btn = document.getElementById('copyBtn');
-        btn.innerText = "✅ Скопировано";
-        const toast = document.getElementById('toast');
-        toast.style.bottom = "30px";
-        setTimeout(() => { toast.style.bottom = "-50px"; }, 2500);
-        setTimeout(() => btn.innerText = "📋 Скопировать ссылку", 2000);
-    }
-</script>
+        function copyOnly() {
+            if (!subUrl) return;
+            fallbackCopy(subUrl);
+            const btn = document.getElementById('copyBtn');
+            btn.innerText = "✅ Скопировано";
+            const toast = document.getElementById('toast');
+            toast.style.bottom = "30px";
+            setTimeout(() => { toast.style.bottom = "-50px"; }, 2500);
+            setTimeout(() => btn.innerText = "📋 Скопировать ссылку", 2000);
+        }
+    </script>
+</body>
+</html>
