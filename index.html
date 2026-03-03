@@ -69,7 +69,7 @@
             // 🔥 ГЛАВНЫЙ ФИКС ДЛЯ HAPP:
             // Отрезаем всё, что идет после символа '#' (убираем #NeboCN), чтобы парсер Happ не крашился.
             const cleanUrlForHapp = subUrl.split('#')[0];
-            const happLink = "happ://" + cleanUrlForHapp;
+            const happLink = "happ://" + subUrl;
 
             document.getElementById('link-v2box-ios').href = v2boxLink;
             document.getElementById('link-hiddify-android').href = hiddifyLink;
