@@ -5,115 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Установка защищённого туннеля</title>
     <style>
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-            text-align: center; 
-            background: #f4f5f7; 
-            color: #1c1c1e; 
-            padding: 20px;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            min-height: 100vh;
-        }
-        .container {
-            background: white;
-            padding: 30px 20px;
-            border-radius: 20px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-            max-width: 400px;
-            margin: 0 auto;
-            width: 100%;
-            box-sizing: border-box;
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; text-align: center; background: #f4f5f7; color: #1c1c1e; padding: 20px; margin: 0; display: flex; flex-direction: column; justify-content: center; min-height: 100vh; }
+        .container { background: white; padding: 30px 20px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); max-width: 400px; margin: 0 auto; width: 100%; box-sizing: border-box; }
         h2 { margin-top: 0; font-size: 22px; margin-bottom: 10px; }
         p { color: #8e8e93; font-size: 15px; margin-bottom: 25px; line-height: 1.4; }
-        
         #ios-block, #android-block, #pc-block, #error-block { display: none; }
-        
-        .btn { 
-            display: block; 
-            width: 100%; 
-            padding: 14px 20px; 
-            margin-bottom: 12px; 
-            border-radius: 12px; 
-            font-size: 16px; 
-            font-weight: 600; 
-            text-decoration: none; 
-            color: white; 
-            border: none;
-            cursor: pointer;
-            box-sizing: border-box;
-            transition: opacity 0.2s;
-        }
+        /* Кнопки теперь настоящие ссылки (тег a) */
+        .btn { display: block; width: 100%; padding: 14px 20px; margin-bottom: 12px; border-radius: 12px; font-size: 16px; font-weight: 600; text-decoration: none; color: white; border: none; cursor: pointer; box-sizing: border-box; transition: opacity 0.2s; }
         .btn:active { opacity: 0.8; }
-        
         .btn-v2box { background: #007aff; }
         .btn-happ { background: #FF2D55; }
         .btn-hiddify { background: #5856D6; }
         .btn-copy { background: #34C759; }
-        
-        .toast {
-            position: fixed;
-            bottom: -50px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.8);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 14px;
-            transition: bottom 0.3s ease;
-            z-index: 2000;
-        }
-
-        /* Стили для затемнения и динамического окна */
-        .overlay {
-            display: none; 
-            position: fixed; 
-            top: 0; left: 0; 
-            width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.5); 
-            z-index: 1000; 
-            align-items: center; 
-            justify-content: center;
-            backdrop-filter: blur(3px);
-        }
-        .modal {
-            background: white; 
-            padding: 25px; 
-            border-radius: 20px; 
-            text-align: left; 
-            max-width: 320px; 
-            width: 90%;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
+        .toast { position: fixed; bottom: -50px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; border-radius: 20px; font-size: 14px; transition: bottom 0.3s ease; z-index: 2000; }
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(3px); }
+        .modal { background: white; padding: 25px; border-radius: 20px; text-align: left; max-width: 320px; width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
         .modal h3 { margin-top: 0; text-align: center; color: #1c1c1e; font-size: 20px; margin-bottom: 15px;}
         .modal p { color: #333; font-size: 14px; margin-bottom: 20px; line-height: 1.5; }
-        .modal-btn { background: #007aff; color: white; border: none; padding: 14px 20px; border-radius: 12px; font-weight: bold; width: 100%; font-size: 16px; cursor: pointer; text-align: center; }
+        .modal-btn { background: #e5e5ea; color: #1c1c1e; border: none; padding: 14px 20px; border-radius: 12px; font-weight: bold; width: 100%; font-size: 16px; cursor: pointer; text-align: center; }
     </style>
 </head>
 <body>
-
     <div class="container">
         <h2>Установка защищённого туннеля</h2>
         <p id="subtitle">Выберите приложение для настройки</p>
-
-        <div id="error-block">
-            <p style="color: #ff3b30;">Ошибка: Ссылка на профиль не найдена.</p>
-        </div>
-
+        <div id="error-block"><p style="color: #ff3b30;">Ошибка: Ссылка на профиль не найдена.</p></div>
+        
         <div id="ios-block">
-            <button class="btn btn-v2box" onclick="connectApp('v2box')">🍏 Открыть в V2Box</button>
-            <button class="btn btn-happ" onclick="connectApp('happ')">🍏 Открыть в Happ</button>
+            <a id="link-v2box-ios" class="btn btn-v2box" href="#">🍏 Открыть в V2Box</a>
+            <a id="link-happ-ios" class="btn btn-happ" href="#">🍏 Открыть в Happ</a>
         </div>
-
         <div id="android-block">
-            <button class="btn btn-happ" onclick="connectApp('happ')">🤖 Открыть в Happ</button>
-            <button class="btn btn-hiddify" onclick="connectApp('hiddify')">🤖 Открыть в Hiddify</button>
+            <a id="link-happ-android" class="btn btn-happ" href="#">🤖 Открыть в Happ</a>
+            <a id="link-hiddify-android" class="btn btn-hiddify" href="#">🤖 Открыть в Hiddify</a>
         </div>
-
         <div id="pc-block">
             <button class="btn btn-copy" id="copyBtn" onclick="copyOnly()">📋 Скопировать ссылку</button>
             <p style="margin-top: 15px; font-size: 13px;">Откройте приложение-клиент на ПК и вставьте ссылку.</p>
@@ -122,21 +47,19 @@
 
     <div class="overlay" id="instructionOverlay">
         <div class="modal">
-            <h3>✅ Ссылка скопирована!</h3>
-            <p>Сейчас мы попытаемся открыть <b id="modalAppName">Приложение</b>. Если оно не открылось автоматически, просто запустите его вручную.</p>
-            <p id="modalInstruction">Здесь будет инструкция</p>
-            <button class="modal-btn" onclick="proceedToApp()">Понятно, продолжить</button>
+            <h3>✅ Выполняется переход</h3>
+            <p>Приложение <b id="modalAppName"></b> должно открыться автоматически.</p>
+            <p id="modalInstruction" style="background:#f4f5f7; padding:10px; border-radius:8px; font-size:13px;"></p>
+            <button class="modal-btn" onclick="document.getElementById('instructionOverlay').style.display='none'">Понятно</button>
         </div>
     </div>
-
     <div class="toast" id="toast">Ссылка скопирована!</div>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const subUrl = urlParams.get('sub');
         const name = urlParams.get('name') || 'Туннель';
-        let currentDeepLink = "";
-
+        
         if (!subUrl) {
             document.getElementById('subtitle').style.display = 'none';
             document.getElementById('error-block').style.display = 'block';
@@ -149,47 +72,41 @@
             } else {
                 document.getElementById('pc-block').style.display = 'block';
             }
-        }
-
-        function connectApp(client) {
-            if (!subUrl) return;
-
-            // Надежно копируем в буфер перед любыми действиями
-            navigator.clipboard.writeText(subUrl).catch(e => console.log('Clipboard fallback failed'));
 
             const encodedUrl = encodeURIComponent(subUrl);
             const encodedName = encodeURIComponent(name);
-            
-            let appName = "";
-            let instructionHtml = "";
 
-            // Настраиваем логику и тексты в зависимости от приложения
-            if (client === 'v2box') {
-                currentDeepLink = "v2box://install-sub?url=" + encodedUrl + "&name=" + encodedName;
-                appName = "V2Box";
-                instructionHtml = "Если туннель не добавился сам, нажмите <b>плюсик (+)</b> в правом верхнем углу и выберите <b>«Import Custom Clipboard»</b> (или Импорт из буфера).";
-            
-            } else if (client === 'happ') {
-                currentDeepLink = subUrl.replace(/^https?:\/\//i, 'happ://');
-                appName = "Happ";
-                instructionHtml = "🔹 <b>Если экран пустой:</b> нажмите синюю кнопку <b>«Из Буфера»</b> в самом низу.<br><br>🔹 <b>Если есть старые настройки:</b> нажмите <b>плюсик (+)</b> в правом верхнем углу и выберите <b>«Импорт из буфера обмена»</b>.";
-            
-            } else if (client === 'hiddify') {
-                currentDeepLink = "hiddify://install-config?url=" + encodedUrl + "&name=" + encodedName;
-                appName = "Hiddify";
-                instructionHtml = "Нажмите на <b>плюсик (+)</b> в правом верхнем углу, затем выберите <b>«Добавить из буфера обмена»</b> (или вставьте скопированную ссылку-ключ), и ваша подписка будет активирована.";
+            // 🔥 ФОРМИРУЕМ НАСТОЯЩИЕ DEEPLINK'И
+            const v2boxLink = "v2box://install-sub?url=" + encodedUrl + "&name=" + encodedName;
+            // Гениальная замена протокола для Happ
+            const happLink = subUrl.replace(/^https?:\/\//i, 'happ://');
+            const hiddifyLink = "hiddify://install-config?url=" + encodedUrl + "&name=" + encodedName;
+
+            // Вставляем ссылки прямо в кнопки (браузер выполнит переход мгновенно)
+            document.getElementById('link-v2box-ios').href = v2boxLink;
+            document.getElementById('link-happ-ios').href = happLink;
+            document.getElementById('link-happ-android').href = happLink;
+            document.getElementById('link-hiddify-android').href = hiddifyLink;
+
+            // Функция-помощник: копирует текст и показывает окно инструкций
+            function attachHelper(elementId, appName, instructionText) {
+                const el = document.getElementById(elementId);
+                if(el) {
+                    el.addEventListener('click', function(e) {
+                        // Тихо копируем в буфер (не прерывая переход)
+                        navigator.clipboard.writeText(subUrl).catch(err => console.log('Copy failed'));
+                        
+                        document.getElementById('modalAppName').innerText = appName;
+                        document.getElementById('modalInstruction').innerHTML = instructionText;
+                        document.getElementById('instructionOverlay').style.display = 'flex';
+                    });
+                }
             }
 
-            // Подставляем тексты в окно и показываем его
-            document.getElementById('modalAppName').innerText = appName;
-            document.getElementById('modalInstruction').innerHTML = instructionHtml;
-            document.getElementById('instructionOverlay').style.display = 'flex';
-        }
-
-        // Запуск после прочтения инструкции
-        function proceedToApp() {
-            document.getElementById('instructionOverlay').style.display = 'none';
-            window.location.href = currentDeepLink;
+            attachHelper('link-v2box-ios', 'V2Box', 'Если туннель не добавился сам, нажмите <b>плюсик (+)</b> в правом верхнем углу и выберите <b>«Import Custom Clipboard»</b>.');
+            attachHelper('link-happ-ios', 'Happ', 'Ваш ключ уже в буфере обмена!<br><br>Если магия не сработала, просто нажмите <b>плюсик (+)</b> в приложении и выберите <b>«Импорт из буфера обмена»</b>.');
+            attachHelper('link-happ-android', 'Happ', 'Ваш ключ уже в буфере обмена!<br><br>Если магия не сработала, просто нажмите <b>плюсик (+)</b> в приложении и выберите <b>«Импорт из буфера обмена»</b>.');
+            attachHelper('link-hiddify-android', 'Hiddify', 'Нажмите на <b>плюсик (+)</b> в правом верхнем углу, затем выберите <b>«Добавить из буфера обмена»</b>.');
         }
 
         function copyOnly() {
