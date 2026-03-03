@@ -47,6 +47,7 @@
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
+        // Берем чистую ссылку, как она пришла от бота
         const rawSubUrl = urlParams.get('sub');
         const vpnName = "NeboVPN";
 
@@ -54,23 +55,29 @@
             document.getElementById('subtitle').style.display = 'none';
             document.getElementById('error-block').style.display = 'block';
         } else {
+            // Кодируем для умных приложений
             const encodedUrl = encodeURIComponent(rawSubUrl);
             const encodedName = encodeURIComponent(vpnName);
 
-            // Стандартные протоколы для остальных клиентов
             const happLink = "happ://install-config?url=" + encodedUrl + "&name=" + encodedName;
             const hiddifyLink = "hiddify://install-config?url=" + encodedUrl + "&name=" + encodedName;
             const v2boxLink = "v2box://install-sub?url=" + encodedUrl + "&name=" + encodedName;
             
-            // ТОЧНЫЙ ПРОТОКОЛ ДЛЯ V2 TUNE (import-sub?url=)
-            const v2TuneLink = "v2raytun://import-sub?url=" + encodedUrl + "&name=" + encodedName;
+            // ИНДИВИДУАЛЬНОЕ РЕШЕНИЕ ДЛЯ V2 TUNE:
+            // Строго сырая ссылка без параметров, иначе их парсер падает
+            const v2TuneLink = "v2raytun://import-sub?url=" + rawSubUrl;
 
             const userAgent = navigator.userAgent || navigator.vendor || window.opera;
             
             if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
                 document.getElementById('ios-block').style.display = 'block';
                 
-                document.getElementById('link-ios-v2tune').href = v2TuneLink;
+                const v2tuneBtn = document.getElementById('link-ios-v2tune');
+                v2tuneBtn.href = v2TuneLink;
+                
+                // Навешиваем бронебойное фоновое копирование при нажатии
+                v2tuneBtn.addEventListener('click', function() { silentCopy(rawSubUrl); });
+                
                 document.getElementById('link-ios-happ').href = happLink;
                 document.getElementById('link-ios-v2box').href = v2boxLink;
             } else if (/android/i.test(userAgent)) {
@@ -82,15 +89,24 @@
             }
         }
 
+        // Функция тихого копирования
+        function silentCopy(text) {
+            try {
+                const tempInput = document.createElement("input");
+                tempInput.value = text;
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                document.execCommand("copy");
+                document.body.removeChild(tempInput);
+            } catch (err) {
+                console.log('Copy failed');
+            }
+        }
+
+        // Кнопка для ручного копирования (ПК)
         function copyOnly() {
             if (!rawSubUrl) return;
-            const tempInput = document.createElement("input");
-            tempInput.value = rawSubUrl;
-            document.body.appendChild(tempInput);
-            tempInput.select();
-            document.execCommand("copy");
-            document.body.removeChild(tempInput);
-            
+            silentCopy(rawSubUrl);
             const btn = document.getElementById('copyBtn');
             btn.innerText = "✅ Скопировано";
             setTimeout(() => btn.innerText = "📋 Скопировать ключ", 2000);
