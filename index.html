@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Настройка туннеля</title>
+    <title>Установка защищённого туннеля</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; text-align: center; background: #f4f5f7; color: #1c1c1e; padding: 20px; margin: 0; display: flex; flex-direction: column; justify-content: center; min-height: 100vh; }
         .container { background: white; padding: 30px 20px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); max-width: 400px; margin: 0 auto; width: 100%; box-sizing: border-box; }
@@ -26,12 +26,12 @@
         <div id="error-block"><p style="color: #ff3b30;">Ошибка: Ссылка на профиль не найдена.</p></div>
         
         <div id="ios-block">
-            <a id="link-v2box-ios" class="btn btn-v2box" href="#">🍏 Открыть в V2Box</a>
-            <a id="link-happ-ios" class="btn btn-happ" href="#">🍏 Открыть в Happ</a>
+            <a id="link-v2box-ios" class="btn btn-v2box" href="#" onclick="silentCopy()">🍏 Открыть в V2Box</a>
+            <a id="link-happ-ios" class="btn btn-happ" href="#" target="_blank" onclick="silentCopy()">🍏 Открыть в Happ</a>
         </div>
         <div id="android-block">
-            <a id="link-happ-android" class="btn btn-happ" href="#">🤖 Открыть в Happ</a>
-            <a id="link-hiddify-android" class="btn btn-hiddify" href="#">🤖 Открыть в Hiddify</a>
+            <a id="link-happ-android" class="btn btn-happ" href="#" target="_blank" onclick="silentCopy()">🤖 Открыть в Happ</a>
+            <a id="link-hiddify-android" class="btn btn-hiddify" href="#" onclick="silentCopy()">🤖 Открыть в Hiddify</a>
         </div>
         <div id="pc-block">
             <button class="btn btn-copy" id="copyBtn" onclick="copyOnly()">📋 Скопировать ссылку</button>
@@ -62,27 +62,24 @@
             const encodedUrl = encodeURIComponent(subUrl);
             const encodedName = encodeURIComponent(name);
 
-            // Ссылки для V2Box и Hiddify (они понимают кодировку и тег name)
+            // Ссылки для V2Box и Hiddify 
             const v2boxLink = "v2box://install-sub?url=" + encodedUrl + "&name=" + encodedName;
             const hiddifyLink = "hiddify://install-config?url=" + encodedUrl + "&name=" + encodedName;
             
-            // 🔥 ГЛАВНЫЙ ФИКС ДЛЯ HAPP:
-            // Отрезаем всё, что идет после символа '#' (убираем #NeboCN), чтобы парсер Happ не крашился.
+            // 🔥 ТА САМАЯ МАГИЯ ДЛЯ HAPP:
+            // Используем команду add/ и передаем сырую ссылку (очищенную от #NeboCN, на всякий случай)
             const cleanUrlForHapp = subUrl.split('#')[0];
-            const happLink = "happ://" + subUrl;
+            const happLink = "happ://add/" + cleanUrlForHapp;
 
             document.getElementById('link-v2box-ios').href = v2boxLink;
             document.getElementById('link-hiddify-android').href = hiddifyLink;
             document.getElementById('link-happ-ios').href = happLink;
             document.getElementById('link-happ-android').href = happLink;
+        }
 
-            // На всякий случай тихо копируем полный URL (с именем) в буфер обмена при клике на любую кнопку
-            const links = document.querySelectorAll('a.btn');
-            links.forEach(link => {
-                link.addEventListener('click', () => {
-                    navigator.clipboard.writeText(subUrl).catch(e => console.log('Copy failed'));
-                });
-            });
+        // Тихое копирование в фоне (страховка)
+        function silentCopy() {
+            if (subUrl) { navigator.clipboard.writeText(subUrl).catch(e => {}); }
         }
 
         function copyOnly() {
