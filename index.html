@@ -73,74 +73,133 @@
                 // Навешиваем обработчики кликов
                 document.getElementById('btn-v2tune').onclick = (e) => connectApp(e, v2TuneLink, rawSubUrl);
                 document.getElementById('btn-happ-ios').onclick = (e) => connectApp(e, happLink, rawSubUrl);
-                document.getElementById('btn-v2box').onclick = (e) => connectApp(e, v2boxLink, rawSubUrl);
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Автонастройка туннеля</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; text-align: center; background: #f4f5f7; color: #1c1c1e; padding: 20px; margin: 0; display: flex; flex-direction: column; justify-content: center; min-height: 100vh; }
+        .container { background: white; padding: 30px 20px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); max-width: 400px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+        h2 { margin-top: 0; font-size: 22px; margin-bottom: 10px; }
+        p { color: #8e8e93; font-size: 15px; margin-bottom: 25px; line-height: 1.4; }
+        
+        #ios-block, #android-block, #pc-block, #error-block { display: none; }
+        
+        .btn { display: block; width: 100%; padding: 14px 20px; margin-bottom: 12px; border-radius: 12px; font-size: 16px; font-weight: 600; text-decoration: none; color: white; border: none; cursor: pointer; box-sizing: border-box; transition: opacity 0.2s; text-align: center; }
+        .btn:active { opacity: 0.8; }
+        .btn-v2box { background: #007aff; }
+        .btn-happ { background: #FF2D55; }
+        .btn-hiddify { background: #5856D6; }
+        .btn-v2tune { background: #FF9500; } 
+        .btn-copy { background: #34C759; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Автонастройка</h2>
+        <p id="subtitle">Выберите установленное приложение</p>
+        
+        <div id="error-block"><p style="color: #ff3b30;">Ошибка: Ссылка не передана.</p></div>
+        
+        <div id="ios-block">
+            <button id="btn-v2tune" class="btn btn-v2tune">🍏 Настроить в V2 Tune</button>
+            <button id="btn-happ-ios" class="btn btn-happ">🍏 Настроить в Happ</button>
+            <button id="btn-v2box" class="btn btn-v2box">🍏 Настроить в V2Box</button>
+        </div>
+        
+        <div id="android-block">
+            <button id="btn-happ-and" class="btn btn-happ">🤖 Настроить в Happ</button>
+            <button id="btn-hiddify" class="btn btn-hiddify">🤖 Настроить в Hiddify</button>
+        </div>
+        
+        <div id="pc-block">
+            <button class="btn btn-copy" id="copyBtn" onclick="copyOnly()">📋 Скопировать ключ</button>
+            <p style="margin-top: 15px; font-size: 13px;">Вставьте этот ключ в приложение на вашем устройстве.</p>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const rawSubUrl = urlParams.get('sub');
+        const vpnName = "NeboVPN";
+
+        if (!rawSubUrl) {
+            document.getElementById('subtitle').style.display = 'none';
+            document.getElementById('error-block').style.display = 'block';
+        } else {
+            const encodedUrl = encodeURIComponent(rawSubUrl);
+            const encodedName = encodeURIComponent(vpnName);
+
+            // Системные схемы
+            const happLink = "happ://install-config?url=" + encodedUrl + "&name=" + encodedName;
+            const hiddifyLink = "hiddify://install-config?url=" + encodedUrl + "&name=" + encodedName;
+            const v2boxLink = "v2box://install-sub?url=" + encodedUrl + "&name=" + encodedName;
+            
+            // Внедряем стандартный протокол install-sub для V2 Tune
+            const v2TuneLink = "v2raytun://install-sub?url=" + encodedUrl + "&name=" + encodedName;
+
+            const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+            
+            if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+                document.getElementById('ios-block').style.display = 'block';
+                
+                // Навешиваем обработчики
+                setupButton('btn-v2tune', v2TuneLink, rawSubUrl);
+                setupButton('btn-happ-ios', happLink, rawSubUrl);
+                setupButton('btn-v2box', v2boxLink, rawSubUrl);
             } else if (/android/i.test(userAgent)) {
                 document.getElementById('android-block').style.display = 'block';
                 
-                document.getElementById('btn-happ-and').onclick = (e) => connectApp(e, happLink, rawSubUrl);
-                document.getElementById('btn-hiddify').onclick = (e) => connectApp(e, hiddifyLink, rawSubUrl);
+                setupButton('btn-happ-and', happLink, rawSubUrl);
+                setupButton('btn-hiddify', hiddifyLink, rawSubUrl);
             } else {
                 document.getElementById('pc-block').style.display = 'block';
             }
         }
 
-        // --- Бронебойная функция копирования для iOS ---
-        function copyToClipboard(text) {
-            var textArea = document.createElement("textarea");
+        // Бронебойная логика копирования и перехода (Одобрено Apple)
+        function setupButton(buttonId, appScheme, rawUrl) {
+            const btn = document.getElementById(buttonId);
+            if (!btn) return;
+
+            btn.addEventListener('click', function() {
+                // Пытаемся синхронно записать в буфер обмена
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(rawUrl).then(() => {
+                        // Только после УСПЕШНОЙ записи переходим в приложение
+                        window.location.href = appScheme;
+                    }).catch(() => {
+                        // Если Safari заартачился - всё равно переходим, чтобы не зависнуть
+                        window.location.href = appScheme;
+                    });
+                } else {
+                    // Страховка для старых браузеров
+                    fallbackCopy(rawUrl);
+                    setTimeout(() => { window.location.href = appScheme; }, 300);
+                }
+            });
+        }
+
+        function fallbackCopy(text) {
+            const textArea = document.createElement("textarea");
             textArea.value = text;
-            
-            // Уводим за экран, но оставляем элемент технически видимым для Safari
-            textArea.style.position = 'absolute';
-            textArea.style.left = '-9999px';
-            textArea.style.top = (window.pageYOffset || document.documentElement.scrollTop) + 'px';
-            textArea.style.fontSize = '16px'; // Блокирует зум в iOS
-            textArea.style.border = 'none';
-            textArea.style.padding = '0';
-            textArea.style.margin = '0';
-            
+            textArea.style.position = "fixed";
             document.body.appendChild(textArea);
-            
-            // Спец-выделение для устройств Apple
-            if (navigator.userAgent.match(/ipad|ipod|iphone/i)) {
-                textArea.contentEditable = true;
-                textArea.readOnly = false;
-                var range = document.createRange();
-                range.selectNodeContents(textArea);
-                var selection = window.getSelection();
-                selection.removeAllRanges();
-                selection.addRange(range);
-                textArea.setSelectionRange(0, 999999);
-            } else {
-                textArea.select();
-            }
-            
-            try {
-                document.execCommand('copy');
-            } catch (err) {
-                console.error('Ошибка буфера', err);
-            }
-            
+            textArea.focus();
+            textArea.select();
+            try { document.execCommand('copy'); } catch (err) {}
             document.body.removeChild(textArea);
         }
 
-        // --- Главная функция перехода ---
-        function connectApp(event, appScheme, rawUrl) {
-            event.preventDefault(); // Останавливаем моментальный переход
-
-            // 1. Копируем в буфер (синхронно)
-            copyToClipboard(rawUrl);
-
-            // 2. Ждем 500мс для фиксации буфера системой и открываем приложение
-            setTimeout(() => {
-                window.location.href = appScheme;
-            }, 500);
-        }
-
-        // Функция для ручного копирования (ПК)
         function copyOnly() {
             if (!rawSubUrl) return;
-            copyToClipboard(rawSubUrl);
-            
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(rawSubUrl);
+            } else {
+                fallbackCopy(rawSubUrl);
+            }
             const btn = document.getElementById('copyBtn');
             btn.innerText = "✅ Скопировано";
             setTimeout(() => btn.innerText = "📋 Скопировать ключ", 2000);
