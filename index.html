@@ -57,19 +57,20 @@
             const encodedUrl = encodeURIComponent(rawSubUrl);
             const encodedName = encodeURIComponent(vpnName);
 
-            // Системные схемы
+            // Системные схемы для остальных клиентов
             const happLink = "happ://install-config?url=" + encodedUrl + "&name=" + encodedName;
             const hiddifyLink = "hiddify://install-config?url=" + encodedUrl + "&name=" + encodedName;
             const v2boxLink = "v2box://install-sub?url=" + encodedUrl + "&name=" + encodedName;
             
-            // Прямой протокол импорта V2RayTun (из их документации)
-            const v2TuneLink = "v2raytun://import/" + rawSubUrl;
+            // ИСПРАВЛЕННЫЙ ПРОТОКОЛ V2 TUNE (обязательно закодированный URL)
+            const v2TuneLink = "v2raytun://import-sub?url=" + encodedUrl;
 
             const userAgent = navigator.userAgent || navigator.vendor || window.opera;
             
             if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
                 document.getElementById('ios-block').style.display = 'block';
                 
+                // Навешиваем бронебойное копирование и переход
                 document.getElementById('btn-v2tune').onclick = (e) => connectApp(e, v2TuneLink, rawSubUrl);
                 document.getElementById('btn-happ-ios').onclick = (e) => connectApp(e, happLink, rawSubUrl);
                 document.getElementById('btn-v2box').onclick = (e) => connectApp(e, v2boxLink, rawSubUrl);
@@ -83,48 +84,56 @@
             }
         }
 
-        // БРОНЕБОЙНАЯ ФУНКЦИЯ КОПИРОВАНИЯ И ПЕРЕХОДА
-        function connectApp(event, appScheme, rawUrl) {
-            // 1. Блокируем мгновенный переход
-            event.preventDefault();
+        // Современная функция асинхронного копирования + переход
+        async function connectApp(event, appScheme, rawUrl) {
+            event.preventDefault(); // Останавливаем мгновенный переход, чтобы скрипт успел отработать
 
-            // 2. Создаем специальное скрытое поле (Хак для iOS)
+            try {
+                // Пробуем современный метод (Apple одобряет)
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(rawUrl);
+                } else {
+                    fallbackCopy(rawUrl);
+                }
+            } catch (err) {
+                fallbackCopy(rawUrl);
+            }
+
+            // Ждем 300 мс для фиксации буфера системой и отправляем в приложение
+            setTimeout(() => {
+                window.location.href = appScheme;
+            }, 300);
+        }
+
+        // Хак-дублер для старых версий iOS Safari (теперь не блокируется)
+        function fallbackCopy(text) {
             const textArea = document.createElement("textarea");
-            textArea.value = rawUrl;
+            textArea.value = text;
             textArea.style.position = "fixed";
             textArea.style.top = "0";
             textArea.style.left = "0";
-            textArea.style.opacity = "0";
+            textArea.style.width = "2px";
+            textArea.style.height = "2px";
+            textArea.style.padding = "0";
+            textArea.style.border = "none";
+            textArea.style.outline = "none";
+            textArea.style.background = "transparent";
             document.body.appendChild(textArea);
-            
-            // 3. Выделяем и копируем синхронно
             textArea.focus();
             textArea.select();
             try {
                 document.execCommand('copy');
-            } catch (err) {
-                console.error('Ошибка копирования', err);
-            }
+            } catch (err) {}
             document.body.removeChild(textArea);
-
-            // 4. Ждем 200 мс, чтобы iOS успела записать буфер, и только потом открываем приложение!
-            setTimeout(() => {
-                window.location.href = appScheme;
-            }, 200);
         }
 
-        // Обычная кнопка копирования
         function copyOnly() {
             if (!rawSubUrl) return;
-            const textArea = document.createElement("textarea");
-            textArea.value = rawSubUrl;
-            textArea.style.position = "fixed";
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textArea);
-            
+            try {
+                navigator.clipboard.writeText(rawSubUrl);
+            } catch(e) {
+                fallbackCopy(rawSubUrl);
+            }
             const btn = document.getElementById('copyBtn');
             btn.innerText = "✅ Скопировано";
             setTimeout(() => btn.innerText = "📋 Скопировать ключ", 2000);
