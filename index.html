@@ -17,7 +17,6 @@
         .btn-v2box { background: #007aff; }
         .btn-happ { background: #FF2D55; }
         .btn-hiddify { background: #5856D6; }
-        /* Оранжевый цвет для кнопки V2 Tune */
         .btn-v2tune { background: #FF9500; } 
         .btn-copy { background: #34C759; }
     </style>
@@ -58,20 +57,19 @@
             const encodedUrl = encodeURIComponent(rawSubUrl);
             const encodedName = encodeURIComponent(vpnName);
 
-            // Формируем системные ссылки
+            // Стандартные протоколы для остальных клиентов
             const happLink = "happ://install-config?url=" + encodedUrl + "&name=" + encodedName;
             const hiddifyLink = "hiddify://install-config?url=" + encodedUrl + "&name=" + encodedName;
             const v2boxLink = "v2box://install-sub?url=" + encodedUrl + "&name=" + encodedName;
             
-            // ИСПРАВЛЕННАЯ ССЫЛКА ДЛЯ V2 TUNE (Используем прямой импорт)
-            const v2TuneLink = "v2raytun://import/" + rawSubUrl + "#" + encodedName;
+            // ТОЧНЫЙ ПРОТОКОЛ ДЛЯ V2 TUNE (import-sub?url=)
+            const v2TuneLink = "v2raytun://import-sub?url=" + encodedUrl + "&name=" + encodedName;
 
             const userAgent = navigator.userAgent || navigator.vendor || window.opera;
             
             if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
                 document.getElementById('ios-block').style.display = 'block';
                 
-                // Раздаем готовые ссылки кнопкам
                 document.getElementById('link-ios-v2tune').href = v2TuneLink;
                 document.getElementById('link-ios-happ').href = happLink;
                 document.getElementById('link-ios-v2box').href = v2boxLink;
