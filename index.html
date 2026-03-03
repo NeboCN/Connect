@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Установка защищённого туннеля</title>
+    <title>Настройка туннеля</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; text-align: center; background: #f4f5f7; color: #1c1c1e; padding: 20px; margin: 0; display: flex; flex-direction: column; justify-content: center; min-height: 100vh; }
         .container { background: white; padding: 30px 20px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); max-width: 400px; margin: 0 auto; width: 100%; box-sizing: border-box; }
@@ -62,16 +62,27 @@
             const encodedUrl = encodeURIComponent(subUrl);
             const encodedName = encodeURIComponent(name);
 
-            // 🔥 ЧИСТЫЕ ПРЯМЫЕ ССЫЛКИ
+            // Ссылки для V2Box и Hiddify (они понимают кодировку и тег name)
             const v2boxLink = "v2box://install-sub?url=" + encodedUrl + "&name=" + encodedName;
-            const happLink = subUrl.replace(/^https?:\/\//i, 'happ://');
             const hiddifyLink = "hiddify://install-config?url=" + encodedUrl + "&name=" + encodedName;
+            
+            // 🔥 ГЛАВНЫЙ ФИКС ДЛЯ HAPP:
+            // Отрезаем всё, что идет после символа '#' (убираем #NeboCN), чтобы парсер Happ не крашился.
+            const cleanUrlForHapp = subUrl.split('#')[0];
+            const happLink = "happ://" + cleanUrlForHapp;
 
-            // Назначаем их напрямую в кнопки (без перехватчиков и окон)
             document.getElementById('link-v2box-ios').href = v2boxLink;
+            document.getElementById('link-hiddify-android').href = hiddifyLink;
             document.getElementById('link-happ-ios').href = happLink;
             document.getElementById('link-happ-android').href = happLink;
-            document.getElementById('link-hiddify-android').href = hiddifyLink;
+
+            // На всякий случай тихо копируем полный URL (с именем) в буфер обмена при клике на любую кнопку
+            const links = document.querySelectorAll('a.btn');
+            links.forEach(link => {
+                link.addEventListener('click', () => {
+                    navigator.clipboard.writeText(subUrl).catch(e => console.log('Copy failed'));
+                });
+            });
         }
 
         function copyOnly() {
