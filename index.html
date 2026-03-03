@@ -58,13 +58,13 @@
             const encodedUrl = encodeURIComponent(rawSubUrl);
             const encodedName = encodeURIComponent(vpnName);
 
-            // Формируем системные ссылки для всех поддерживаемых приложений
+            // Формируем системные ссылки
             const happLink = "happ://install-config?url=" + encodedUrl + "&name=" + encodedName;
             const hiddifyLink = "hiddify://install-config?url=" + encodedUrl + "&name=" + encodedName;
             const v2boxLink = "v2box://install-sub?url=" + encodedUrl + "&name=" + encodedName;
             
-            // ИСПРАВЛЕННАЯ ССЫЛКА: v2raytun:// (без буквы 'e' на конце)
-            const v2TuneLink = "v2raytun://install-config?url=" + encodedUrl + "&name=" + encodedName;
+            // ИСПРАВЛЕННАЯ ССЫЛКА ДЛЯ V2 TUNE (Используем прямой импорт)
+            const v2TuneLink = "v2raytun://import/" + rawSubUrl + "#" + encodedName;
 
             const userAgent = navigator.userAgent || navigator.vendor || window.opera;
             
@@ -84,7 +84,6 @@
             }
         }
 
-        // Страховочная функция ручного копирования
         function copyOnly() {
             if (!rawSubUrl) return;
             const tempInput = document.createElement("input");
