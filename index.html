@@ -29,14 +29,14 @@
         <div id="error-block"><p style="color: #ff3b30;">Ошибка: Ссылка не передана.</p></div>
         
         <div id="ios-block">
-            <a id="link-ios-v2tune" class="btn btn-v2tune" href="#">🍏 Настроить в V2 Tune</a>
-            <a id="link-ios-happ" class="btn btn-happ" href="#">🍏 Настроить в Happ</a>
-            <a id="link-ios-v2box" class="btn btn-v2box" href="#">🍏 Настроить в V2Box</a>
+            <a id="btn-v2tune" class="btn btn-v2tune" href="#">🍏 Настроить в V2 Tune</a>
+            <a id="btn-happ-ios" class="btn btn-happ" href="#">🍏 Настроить в Happ</a>
+            <a id="btn-v2box" class="btn btn-v2box" href="#">🍏 Настроить в V2Box</a>
         </div>
         
         <div id="android-block">
-            <a id="link-and-happ" class="btn btn-happ" href="#">🤖 Настроить в Happ</a>
-            <a id="link-and-hiddify" class="btn btn-hiddify" href="#">🤖 Настроить в Hiddify</a>
+            <a id="btn-happ-and" class="btn btn-happ" href="#">🤖 Настроить в Happ</a>
+            <a id="btn-hiddify" class="btn btn-hiddify" href="#">🤖 Настроить в Hiddify</a>
         </div>
         
         <div id="pc-block">
@@ -47,7 +47,6 @@
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        // Берем чистую ссылку, как она пришла от бота
         const rawSubUrl = urlParams.get('sub');
         const vpnName = "NeboVPN";
 
@@ -55,58 +54,77 @@
             document.getElementById('subtitle').style.display = 'none';
             document.getElementById('error-block').style.display = 'block';
         } else {
-            // Кодируем для умных приложений
             const encodedUrl = encodeURIComponent(rawSubUrl);
             const encodedName = encodeURIComponent(vpnName);
 
+            // Системные схемы
             const happLink = "happ://install-config?url=" + encodedUrl + "&name=" + encodedName;
             const hiddifyLink = "hiddify://install-config?url=" + encodedUrl + "&name=" + encodedName;
             const v2boxLink = "v2box://install-sub?url=" + encodedUrl + "&name=" + encodedName;
             
-            // ИНДИВИДУАЛЬНОЕ РЕШЕНИЕ ДЛЯ V2 TUNE:
-            // Строго сырая ссылка без параметров, иначе их парсер падает
-            const v2TuneLink = "v2raytun://import-sub?url=" + rawSubUrl;
+            // Прямой протокол импорта V2RayTun (из их документации)
+            const v2TuneLink = "v2raytun://import/" + rawSubUrl;
 
             const userAgent = navigator.userAgent || navigator.vendor || window.opera;
             
             if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
                 document.getElementById('ios-block').style.display = 'block';
                 
-                const v2tuneBtn = document.getElementById('link-ios-v2tune');
-                v2tuneBtn.href = v2TuneLink;
-                
-                // Навешиваем бронебойное фоновое копирование при нажатии
-                v2tuneBtn.addEventListener('click', function() { silentCopy(rawSubUrl); });
-                
-                document.getElementById('link-ios-happ').href = happLink;
-                document.getElementById('link-ios-v2box').href = v2boxLink;
+                document.getElementById('btn-v2tune').onclick = (e) => connectApp(e, v2TuneLink, rawSubUrl);
+                document.getElementById('btn-happ-ios').onclick = (e) => connectApp(e, happLink, rawSubUrl);
+                document.getElementById('btn-v2box').onclick = (e) => connectApp(e, v2boxLink, rawSubUrl);
             } else if (/android/i.test(userAgent)) {
                 document.getElementById('android-block').style.display = 'block';
-                document.getElementById('link-and-happ').href = happLink;
-                document.getElementById('link-and-hiddify').href = hiddifyLink;
+                
+                document.getElementById('btn-happ-and').onclick = (e) => connectApp(e, happLink, rawSubUrl);
+                document.getElementById('btn-hiddify').onclick = (e) => connectApp(e, hiddifyLink, rawSubUrl);
             } else {
                 document.getElementById('pc-block').style.display = 'block';
             }
         }
 
-        // Функция тихого копирования
-        function silentCopy(text) {
+        // БРОНЕБОЙНАЯ ФУНКЦИЯ КОПИРОВАНИЯ И ПЕРЕХОДА
+        function connectApp(event, appScheme, rawUrl) {
+            // 1. Блокируем мгновенный переход
+            event.preventDefault();
+
+            // 2. Создаем специальное скрытое поле (Хак для iOS)
+            const textArea = document.createElement("textarea");
+            textArea.value = rawUrl;
+            textArea.style.position = "fixed";
+            textArea.style.top = "0";
+            textArea.style.left = "0";
+            textArea.style.opacity = "0";
+            document.body.appendChild(textArea);
+            
+            // 3. Выделяем и копируем синхронно
+            textArea.focus();
+            textArea.select();
             try {
-                const tempInput = document.createElement("input");
-                tempInput.value = text;
-                document.body.appendChild(tempInput);
-                tempInput.select();
-                document.execCommand("copy");
-                document.body.removeChild(tempInput);
+                document.execCommand('copy');
             } catch (err) {
-                console.log('Copy failed');
+                console.error('Ошибка копирования', err);
             }
+            document.body.removeChild(textArea);
+
+            // 4. Ждем 200 мс, чтобы iOS успела записать буфер, и только потом открываем приложение!
+            setTimeout(() => {
+                window.location.href = appScheme;
+            }, 200);
         }
 
-        // Кнопка для ручного копирования (ПК)
+        // Обычная кнопка копирования
         function copyOnly() {
             if (!rawSubUrl) return;
-            silentCopy(rawSubUrl);
+            const textArea = document.createElement("textarea");
+            textArea.value = rawSubUrl;
+            textArea.style.position = "fixed";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            
             const btn = document.getElementById('copyBtn');
             btn.innerText = "✅ Скопировано";
             setTimeout(() => btn.innerText = "📋 Скопировать ключ", 2000);
