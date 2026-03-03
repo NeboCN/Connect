@@ -57,20 +57,20 @@
             const encodedUrl = encodeURIComponent(rawSubUrl);
             const encodedName = encodeURIComponent(vpnName);
 
-            // Системные схемы для остальных клиентов
+            // Кодированные форматы для Happ, Hiddify и V2Box
             const happLink = "happ://install-config?url=" + encodedUrl + "&name=" + encodedName;
             const hiddifyLink = "hiddify://install-config?url=" + encodedUrl + "&name=" + encodedName;
             const v2boxLink = "v2box://install-sub?url=" + encodedUrl + "&name=" + encodedName;
             
-            // ИСПРАВЛЕННЫЙ ПРОТОКОЛ V2 TUNE (обязательно закодированный URL)
-            const v2TuneLink = "v2raytun://import-sub?url=" + encodedUrl;
+            // ВАЖНО: Формат V2RayTun (СЫРАЯ ссылка, без кодирования https)
+            const v2TuneLink = "v2raytun://import-sub?url=" + rawSubUrl;
 
             const userAgent = navigator.userAgent || navigator.vendor || window.opera;
             
             if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
                 document.getElementById('ios-block').style.display = 'block';
                 
-                // Навешиваем бронебойное копирование и переход
+                // Навешиваем обработчики кликов
                 document.getElementById('btn-v2tune').onclick = (e) => connectApp(e, v2TuneLink, rawSubUrl);
                 document.getElementById('btn-happ-ios').onclick = (e) => connectApp(e, happLink, rawSubUrl);
                 document.getElementById('btn-v2box').onclick = (e) => connectApp(e, v2boxLink, rawSubUrl);
@@ -84,56 +84,63 @@
             }
         }
 
-        // Современная функция асинхронного копирования + переход
-        async function connectApp(event, appScheme, rawUrl) {
-            event.preventDefault(); // Останавливаем мгновенный переход, чтобы скрипт успел отработать
-
-            try {
-                // Пробуем современный метод (Apple одобряет)
-                if (navigator.clipboard && window.isSecureContext) {
-                    await navigator.clipboard.writeText(rawUrl);
-                } else {
-                    fallbackCopy(rawUrl);
-                }
-            } catch (err) {
-                fallbackCopy(rawUrl);
-            }
-
-            // Ждем 300 мс для фиксации буфера системой и отправляем в приложение
-            setTimeout(() => {
-                window.location.href = appScheme;
-            }, 300);
-        }
-
-        // Хак-дублер для старых версий iOS Safari (теперь не блокируется)
-        function fallbackCopy(text) {
-            const textArea = document.createElement("textarea");
+        // --- Бронебойная функция копирования для iOS ---
+        function copyToClipboard(text) {
+            var textArea = document.createElement("textarea");
             textArea.value = text;
-            textArea.style.position = "fixed";
-            textArea.style.top = "0";
-            textArea.style.left = "0";
-            textArea.style.width = "2px";
-            textArea.style.height = "2px";
-            textArea.style.padding = "0";
-            textArea.style.border = "none";
-            textArea.style.outline = "none";
-            textArea.style.background = "transparent";
+            
+            // Уводим за экран, но оставляем элемент технически видимым для Safari
+            textArea.style.position = 'absolute';
+            textArea.style.left = '-9999px';
+            textArea.style.top = (window.pageYOffset || document.documentElement.scrollTop) + 'px';
+            textArea.style.fontSize = '16px'; // Блокирует зум в iOS
+            textArea.style.border = 'none';
+            textArea.style.padding = '0';
+            textArea.style.margin = '0';
+            
             document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
+            
+            // Спец-выделение для устройств Apple
+            if (navigator.userAgent.match(/ipad|ipod|iphone/i)) {
+                textArea.contentEditable = true;
+                textArea.readOnly = false;
+                var range = document.createRange();
+                range.selectNodeContents(textArea);
+                var selection = window.getSelection();
+                selection.removeAllRanges();
+                selection.addRange(range);
+                textArea.setSelectionRange(0, 999999);
+            } else {
+                textArea.select();
+            }
+            
             try {
                 document.execCommand('copy');
-            } catch (err) {}
+            } catch (err) {
+                console.error('Ошибка буфера', err);
+            }
+            
             document.body.removeChild(textArea);
         }
 
+        // --- Главная функция перехода ---
+        function connectApp(event, appScheme, rawUrl) {
+            event.preventDefault(); // Останавливаем моментальный переход
+
+            // 1. Копируем в буфер (синхронно)
+            copyToClipboard(rawUrl);
+
+            // 2. Ждем 500мс для фиксации буфера системой и открываем приложение
+            setTimeout(() => {
+                window.location.href = appScheme;
+            }, 500);
+        }
+
+        // Функция для ручного копирования (ПК)
         function copyOnly() {
             if (!rawSubUrl) return;
-            try {
-                navigator.clipboard.writeText(rawSubUrl);
-            } catch(e) {
-                fallbackCopy(rawSubUrl);
-            }
+            copyToClipboard(rawSubUrl);
+            
             const btn = document.getElementById('copyBtn');
             btn.innerText = "✅ Скопировано";
             setTimeout(() => btn.innerText = "📋 Скопировать ключ", 2000);
