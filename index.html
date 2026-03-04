@@ -14,10 +14,9 @@
         .btn:active { opacity: 0.8; }
         .btn-v2box { background: #007aff; }
         .btn-happ { background: #FF2D55; }
-        .btn-routing { background: #ffffff; border: 2px solid #FF2D55; color: #FF2D55; font-size: 14px; padding: 10px; }
+        .btn-routing { background: #545458; border: 2px solid #FF2D55; color: #FF2D55; background: white; font-size: 14px; padding: 10px; } /* Кнопка для роутинга */
         .btn-hiddify { background: #5856D6; }
         .btn-copy { background: #34C759; }
-        .toast { position: fixed; bottom: -50px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; border-radius: 20px; font-size: 14px; transition: bottom 0.3s ease; z-index: 2000; }
     </style>
 </head>
 <body>
@@ -29,23 +28,21 @@
         <div id="ios-block">
             <a id="link-v2box-ios" class="btn btn-v2box" href="#">🍏 Открыть в V2Box</a>
             <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-            <a id="link-happ-ios" class="btn btn-happ" href="#" onclick="silentCopy()">🍏 Подключить в Happ</a>
+            <a id="link-happ-ios" class="btn btn-happ" href="#">🍏 Подключить в Happ</a>
             <a id="routing-happ-ios" class="btn btn-routing" href="#">⚡️ Настроить роутинг (Expert)</a>
         </div>
 
         <div id="android-block">
-            <a id="link-happ-android" class="btn btn-happ" href="#" onclick="silentCopy()">🤖 Подключить в Happ</a>
+            <a id="link-happ-android" class="btn btn-happ" href="#">🤖 Подключить в Happ</a>
             <a id="routing-happ-android" class="btn btn-routing" href="#">⚡️ Настроить роутинг (QUIC-Fix)</a>
             <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
             <a id="link-hiddify-android" class="btn btn-hiddify" href="#">🤖 Открыть в Hiddify</a>
         </div>
 
         <div id="pc-block">
-            <button class="btn btn-copy" id="copyBtn" onclick="copyOnlyAlert()">📋 Скопировать ссылку</button>
+            <button class="btn btn-copy" id="copyBtn" onclick="copyOnly()">📋 Скопировать ссылку</button>
         </div>
     </div>
-
-    <div class="toast" id="toast">Ссылка скопирована!</div>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
@@ -55,7 +52,6 @@
         if (!subUrl) {
             document.getElementById('error-block').style.display = 'block';
         } else {
-            // Включаем отображение блоков в зависимости от ОС
             const userAgent = navigator.userAgent || navigator.vendor || window.opera;
             if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
                 document.getElementById('ios-block').style.display = 'block';
@@ -68,48 +64,26 @@
             const encodedUrl = encodeURIComponent(subUrl);
             const encodedName = encodeURIComponent(name);
 
-            // 1. Формируем ссылки для V2Box и Hiddify
-            const v2boxLink = "v2box://install-sub?url=" + encodedUrl + "&name=" + encodedName;
-            const hiddifyLink = "hiddify://install-config?url=" + encodedUrl + "&name=" + encodedName;
+            // 1. Ссылки на подписки
+            document.getElementById('link-v2box-ios').href = "v2box://install-sub?url=" + encodedUrl + "&name=" + encodedName;
+            document.getElementById('link-hiddify-android').href = "hiddify://install-config?url=" + encodedUrl + "&name=" + encodedName;
             
-            // 2. 🔥 ИДЕАЛЬНАЯ ЛОГИКА ДЛЯ HAPP 🔥
-            // Отрезаем #NeboCN и заменяем https:// на happ://
-            const cleanUrl = subUrl.split('#')[0];
-            const happSubLink = cleanUrl.replace(/^https?:\/\//i, 'happ://');
+            // Прямая ссылка для Happ (как мы выяснили - это самый рабочий метод)
+            const happSubLink = "happ://" + subUrl;
+            document.getElementById('link-happ-ios').href = happSubLink;
+            document.getElementById('link-happ-android').href = happSubLink;
 
-            // 3. Ваши конфиги роутинга
-            const routingIOS = "happ://routing/add/eyJOYW1lIjoiRmluYWwtRXhwZXJ0LUNvbXBsZXRlIiwiUm91dGVPcmRlciI6IkJsb2NrRGlyZWN0UHJveHkiLCJEb21haW5TdHJhdGVneSI6IkFzSXMiLCJETlMiOnsiUmVtb3RlIjp7IlR5cGUiOiJEb0giLCJEb21haW4iOiJodHRwczovL2Rucy5nb29nbGUvZG5zLXF1ZXJ5IiwiSVAiOiI4LjguOC44In0sIkRvbWVzdGljIjp7IlR5cGUiOiJEb1UiLCJJUCI6Ijc3Ljg4LjguOCJ9fSwiUnVsZXMiOnsiQmxvY2tQb3J0IjpbIjQ0My91ZHAiXSwiRGlyZWN0U2l0ZXMiOlsiZG9tYWluOi5ydSIsImRvbWFpbjouc3UiLCJkb21haW46LnJmIiwiZG9tYWluOi5tb3Njb3dyIiwiZG9tYWluOi5tZSIsImRvbWFpbjp5YW5kZXgubmV0IiwiZG9tYWluOnlhc3RhdGljLm5ldCIsImRvbWFpbjp5YW5kZXguY29tIiwiZG9tYWluOnZrLmNvbSIsImRvbWFpbjp2ay5tZSIsImRvbWFpbjphdml0by5zdCIsImRvbWFpbjphdml0by5jb20iLCJkb21haW46b3pvbi5jb20iLCJkb21haW46d2lsZGJlcnJpZXMuY29tIiwiZG9tYWluOnNiZXJiYW5rLmNvbSIsImRvbWFpbjpzYmVyLmNvbSIsImRvbWFpbjpzYmVyLmxpbmsiLCJkb21haW46c2Jlci5tZSIsImRvbWFpbjp0aW5rb2ZmLmNvbSIsImRvbWFpbjp0LWJhbmsuZ3JvdXAiLCJkb21haW46dnRiLmNvbSIsImRvbWFpbjphbGZhYmFuay5jb20iLCJkb21haW46ZW1pYXMuaW5mbyIsImRvbWFpbjtydXNzaWEudHJhdmVsIiwiZG9tYWluOnNrLnJ1IiwiZG9tYWluOnJ0LmNvbSIsImRvbWFpbjpzcHV0bmlrbmV3cy5jb20iLCJkb21haW46YWVyb2Zsb3QuY29tIiwiZG9tYWluOm1pci1jb25uZWN0LmNvbSIsImRvbWFpbjpoZXJtaXRhZ2VtdXNldW0ub3JnIiwiZG9tYWluOnRyZXR5YWtvdmdhbGxlcnkub3JnIiwiZG9tYWluOmJvbHNob2kub3JnIiwiZG9tYWluOm1heC5tZSIsImRvbWFpbjptYXgtY2RuLmNvbSIsImRvbWFpbjptYXgtYXBpLmNvbSIsImRvbWFpbjptYXgtY2FsbHMubmV0IiwiZG9tYWluOnNicC5tZSIsImRvbWFpbjpjZGVrLm1lIiwiZG9tYWluOm9ra28udHYiLCJkb21haW46bW9yZS50diIsImRvbWFpbjpmaXgtcHJpY2UuY29tIiwiZG9tYWluOm1hZ25pdC5jb20iLCJkb21haW46bXRzLm1lIiwiZG9tYWluOnQubWUiXSwiUHJveHlTaXRlcyI6WyJnZW9zaXRlOmNhdGVnb3J5LWFkcy1hbGwiXX19";
-            const routingAndroid = "happ://routing/add/eyJOYW1lIjoiUVVJQy1ETlMtT25seSIsIlJvdXRlT3JkZXIiOiJCbG9ja1Byb3h5IiwiRG9tYWluU3RyYXRlZ3kiOiJJUElmTm9uTWF0Y2giLCJETlMiOnsiUmVtb3RlIjp7IlR5cGUiOiJEb0giLCJEb21haW4iOiJodHRwczovL2Rucy5nb29nbGUvZG5zLXF1ZXJ5IiwiSVAiOiI4LjguOC44In0sIkRvbWVzdGljIjp7IlR5cGUiOiJEb1UiLCJJUCI6Ijc3Ljg4LjguOCJ9fSwiUnVsZXMiOnsiQmxvY2tQb3J0IjpbIjQ0My91ZHAiXX19";
-
-            // 4. Безопасно применяем ссылки (защита от краша JS)
-            const setLink = (id, href) => {
-                const el = document.getElementById(id);
-                if (el) el.href = href;
-            };
-
-            setLink('link-v2box-ios', v2boxLink);
-            setLink('link-hiddify-android', hiddifyLink);
-            setLink('link-happ-ios', happSubLink);
-            setLink('link-happ-android', happSubLink);
-            setLink('routing-happ-ios', routingIOS);
-            setLink('routing-happ-android', routingAndroid);
+            // 2. Ссылки на ВАШИ правила маршрутизации (Routing)
+            const routingIOS = "happ://routing/add/eyJOYW1lIjoiRmluYWwtRXhwZXJ0LUNvbXBsZXRlIiwiUm91dGVPcmRlciI6IkJsb2NrRGlyZWN0UHJveHkiLCJEb21haW5TdHJhdGVneSI6IkFzSXMiLCJETlMiOnsiUmVtb3RlIjp7IlR5cGUiOiJEb0giLCJEb21haW4iOiJodHRwczovL2Rucy5nb29nbGUvZG5zLXF1ZXJ5IiwiSVAiOiI4LjguOC44In0sIkRvbWVzdGljIjp7IlR5cGUiOiJEb1UiLCJJUCI6Ijc3Ljg4LjguOCJ9fSwiUnVsZXMiOnsiQmxyY2tQb3J0IjpbIjQ0My91ZHAiXSwiRGlyZWN0U2l0ZXMiOlsiZG9tYWluOi5ydSIsImRvbWFpbjouc3UiLCJkb21haW46LnJmIiwiZG9tYWluOi5tb3Njb3dyIiwiZG9tYWluOi5tZSIsImRvbWFpbjp5YW5kZXgubmV0IiwiZG9tYWluOnlhc3RhdGljLm5ldCIsImRvbWFpbjp5YW5kZXguY29tIiwiZG9tYWluOnZrLmNvbSIsImRvbWFpbjp2ay5tZSIsImRvbWFpbjphdml0by5zdCIsImRvbWFpbjphdml0by5jb20iLCJkb21haW46b3pvbi5jb20iLCJkb21haW46d2lsZGJlcnJpZXMuY29tIiwiZG9tYWluOnNiZXJiYW5rLmNvbSIsImRvbWFpbjpzYmVyLmNvbSIsImRvbWFpbjpzYmVyLmxpbmsiLCJkb21haW46c2Jlci5tZSIsImRvbWFpbjp0aW5rb2ZmLmNvbSIsImRvbWFpbjp0LWJhbmsuZ3JvdXAiLCJkb21haW46dnRiLmNvbSIsImRvbWFpbjphbGZhYmFuay5jb20iLCJkb21haW46ZW1pYXMuaW5mbyIsImRvbWFpbjtydXNzaWEudHJhdmVsIiwiZG9tYWluOnNrLnJ1IiwiZG9tYWluOnJ0LmNvbSIsImRvbWFpbjpzcHV0bmlrbmV3cy5jb20iLCJkb21haW46YWVyb2Zsb3QuY29tIiwiZG9tYWluOm1pci1jb25uZWN0LmNvbSIsImRvbWFpbjpoZXJtaXRhZ2VtdXNldW0ub3JnIiwiZG9tYWluOnRyZXR5YWtvdmdhbGxlcnkub3JnIiwiZG9tYWluOmJvbHNob2kub3JnIiwiZG9tYWluOm1heC5tZSIsImRvbWFpbjptYXgtY2RuLmNvbSIsImRvbWFpbjptYXgtYXBpLmNvbSIsImRvbWFpbjptYXgtY2FsbHMubmV0IiwiZG9tYWluOnNicC5tZSIsImRvbWFpbjpjZGVrLm1lIiwiZG9tYWluOm9ra28udHYiLCJkb21haW46bW9yZS50diIsImRvbWFpbjpmaXgtcHJpY2UuY29tIiwiZG9tYWluOm1hZ25pdC5jb20iLCJkb21haW46bXRzLm1lIiwiZG9tYWluOnQubWUiXSwiUHJveHlTaXRlcyI6WyJnZW9zaXRlOmNhdGVnb3J5LWFkcy1hbGwiXX19";
+            const routingAndroid = "happ://routing/add/eyJOYW1lIjoiUVVJQy1ETlMtT25seSIsIlJvdXRlT3JkZXIiOiJCbG9ja1Byb3h5IiwiRG9tYWluU3RyYXRlZ3kiOiJJUElmTm9uTWF0Y2giLCJETlMiOnsiUmVtb3RlIjp7IlR5cGUiOiJEb0giLCJEb21haW4iOiJodHRwczovL2Rucy5nb29nbGUvZG5zLXF1ZXJ5IiwiSVAiOiI4LjguOC44In0sIkRvbWVzdGljIjp7IlR5cGUiOiJEb1UiLCJJUCI6Ijc3Ljg4LjguOCJ9fSwiUnVsZXMiOnsiQmxyY2tQb3J0IjpbIjQ0My91ZHAiXX19";
+            
+            document.getElementById('routing-happ-ios').href = routingIOS;
+            document.getElementById('routing-happ-android').href = routingAndroid;
         }
 
-        // Теневое копирование для подстраховки
-        function silentCopy() {
-            if (subUrl) { navigator.clipboard.writeText(subUrl).catch(e => {}); }
-        }
-
-        function copyOnlyAlert() {
-            if (!subUrl) return;
-            navigator.clipboard.writeText(subUrl).then(() => {
-                const btn = document.getElementById('copyBtn');
-                btn.innerText = "✅ Скопировано";
-                const toast = document.getElementById('toast');
-                toast.style.bottom = "30px";
-                setTimeout(() => { toast.style.bottom = "-50px"; }, 2500);
-                setTimeout(() => btn.innerText = "📋 Скопировать ссылку", 2000);
-            });
+        function copyOnly() {
+            navigator.clipboard.writeText(subUrl);
+            alert("Ссылка скопирована!");
         }
     </script>
 </body>
