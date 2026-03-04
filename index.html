@@ -5,30 +5,68 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Установка защищённого туннеля</title>
     <style>
-        /* Оригинальный дизайн из Паспорта */
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; text-align: center; background: #f4f5f7; color: #1c1c1e; padding: 20px; margin: 0; display: flex; flex-direction: column; justify-content: center; min-height: 100vh; }
-        .container { background: white; padding: 30px 20px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); max-width: 400px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            text-align: center; 
+            background: #f4f5f7; 
+            color: #1c1c1e; 
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 30px 20px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            max-width: 400px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
         h2 { margin-top: 0; font-size: 22px; margin-bottom: 10px; }
         p { color: #8e8e93; font-size: 15px; margin-bottom: 25px; line-height: 1.4; }
         
         #ios-block, #android-block, #pc-block, #error-block { display: none; }
         
-        .btn { display: block; width: 100%; padding: 14px 20px; margin-bottom: 12px; border-radius: 12px; font-size: 16px; font-weight: 600; text-decoration: none; color: white; border: none; cursor: pointer; box-sizing: border-box; transition: opacity 0.2s; }
+        .btn { 
+            display: block;
+            width: 100%; 
+            padding: 14px 20px; 
+            margin-bottom: 12px; 
+            border-radius: 12px; 
+            font-size: 16px; 
+            font-weight: 600; 
+            text-decoration: none; 
+            color: white; 
+            border: none;
+            cursor: pointer;
+            box-sizing: border-box;
+            transition: opacity 0.2s;
+        }
         .btn:active { opacity: 0.8; }
         
         .btn-v2box { background: #007aff; }
         .btn-happ { background: #FF2D55; }
-        .btn-routing { background: #ffffff; border: 2px solid #FF2D55; color: #FF2D55; }
         .btn-hiddify { background: #5856D6; }
         .btn-copy { background: #34C759; }
         
-        .toast { position: fixed; bottom: -50px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; border-radius: 20px; font-size: 14px; transition: bottom 0.3s ease; z-index: 2000; }
-        
-        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(3px); }
-        .modal { background: white; padding: 25px; border-radius: 20px; text-align: left; max-width: 320px; width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-        .modal h3 { margin-top: 0; text-align: center; color: #1c1c1e; font-size: 20px; margin-bottom: 15px;}
-        .modal p { color: #333; font-size: 14px; margin-bottom: 20px; line-height: 1.5; }
-        .modal-btn { background: #007aff; color: white; border: none; padding: 14px 20px; border-radius: 12px; font-weight: bold; width: 100%; font-size: 16px; cursor: pointer; text-align: center; }
+        .toast {
+            position: fixed;
+            bottom: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            transition: bottom 0.3s ease;
+            z-index: 2000;
+        }
     </style>
 </head>
 <body>
@@ -43,15 +81,11 @@
 
         <div id="ios-block">
             <button class="btn btn-v2box" onclick="connectApp('v2box')">🍏 Открыть в V2Box</button>
-            <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
-            <button class="btn btn-happ" onclick="connectApp('happ')">🍏 Подключить в Happ</button>
-            <button class="btn btn-routing" onclick="addRouting('ios')">⚡️ Настроить роутинг (Expert)</button>
+            <button class="btn btn-happ" onclick="connectApp('happ')">🍏 Открыть в Happ</button>
         </div>
 
         <div id="android-block">
-            <button class="btn btn-happ" onclick="connectApp('happ')">🤖 Подключить в Happ</button>
-            <button class="btn btn-routing" onclick="addRouting('android')">⚡️ Настроить роутинг (QUIC-Fix)</button>
-            <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+            <button class="btn btn-happ" onclick="connectApp('happ')">🤖 Открыть в Happ</button>
             <button class="btn btn-hiddify" onclick="connectApp('hiddify')">🤖 Открыть в Hiddify</button>
         </div>
 
@@ -61,22 +95,12 @@
         </div>
     </div>
 
-    <div class="overlay" id="instructionOverlay">
-        <div class="modal">
-            <h3>✅ Ссылка скопирована!</h3>
-            <p>Сейчас мы попытаемся открыть <b id="modalAppName">Приложение</b>. Если оно не открылось автоматически, просто запустите его вручную.</p>
-            <p id="modalInstruction">Здесь будет инструкция</p>
-            <button class="modal-btn" onclick="proceedToApp()">Понятно, продолжить</button>
-        </div>
-    </div>
-
     <div class="toast" id="toast">Ссылка скопирована!</div>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const subUrl = urlParams.get('sub');
         const name = urlParams.get('name') || 'Туннель';
-        let currentDeepLink = "";
 
         if (!subUrl) {
             document.getElementById('subtitle').style.display = 'none';
@@ -92,57 +116,25 @@
             }
         }
 
-        // ФУНКЦИЯ ДОБАВЛЕНИЯ ПОДПИСКИ (Строго по Паспорту)
         function connectApp(client) {
             if (!subUrl) return;
-            // Теневое копирование (Smart Fallback)
+            // Теневое копирование на случай сбоев ОС
             navigator.clipboard.writeText(subUrl).catch(e => console.log('Clipboard fallback failed'));
 
             const encodedUrl = encodeURIComponent(subUrl);
             const encodedName = encodeURIComponent(name);
-            
-            let appName = "";
-            let instructionHtml = "";
+            let currentDeepLink = "";
 
             if (client === 'v2box') {
                 currentDeepLink = "v2box://install-sub?url=" + encodedUrl + "&name=" + encodedName;
-                appName = "V2Box";
-                instructionHtml = "Если туннель не добавился сам, нажмите <b>плюсик (+)</b> в правом верхнем углу и выберите <b>«Import Custom Clipboard»</b> (или Импорт из буфера).";
-            
             } else if (client === 'happ') {
-                // 🔥 ЖЕЛЕЗОБЕТОННАЯ ЛОГИКА HAPP С ADD 🔥
+                // 🔥 ТА САМАЯ ЖЕЛЕЗОБЕТОННАЯ ЛОГИКА HAPP С ADD 🔥
                 currentDeepLink = "happ://add?url=" + encodedUrl + "&name=" + encodedName;
-                
-                appName = "Happ";
-                instructionHtml = "🔹 <b>Если экран пустой:</b> нажмите синюю кнопку <b>«Из Буфера»</b> в самом низу.<br><br>🔹 <b>Если есть старые настройки:</b> нажмите <b>плюсик (+)</b> в правом верхнем углу и выберите <b>«Импорт из буфера обмена»</b>.";
-            
             } else if (client === 'hiddify') {
                 currentDeepLink = "hiddify://install-config?url=" + encodedUrl + "&name=" + encodedName;
-                appName = "Hiddify";
-                instructionHtml = "Нажмите на <b>плюсик (+)</b> в правом верхнем углу, затем выберите <b>«Добавить из буфера обмена»</b> (или вставьте скопированную ссылку-ключ), и ваша подписка будет активирована.";
             }
 
-            document.getElementById('modalAppName').innerText = appName;
-            document.getElementById('modalInstruction').innerHTML = instructionHtml;
-            document.getElementById('instructionOverlay').style.display = 'flex';
-        }
-
-        // ФУНКЦИЯ ДОБАВЛЕНИЯ ВАШИХ МАРШРУТОВ
-        function addRouting(os) {
-            if (os === 'ios') {
-                currentDeepLink = "happ://routing/add/eyJOYW1lIjoiRmluYWwtRXhwZXJ0LUNvbXBsZXRlIiwiUm91dGVPcmRlciI6IkJsb2NrRGlyZWN0UHJveHkiLCJEb21haW5TdHJhdGVneSI6IkFzSXMiLCJETlMiOnsiUmVtb3RlIjp7IlR5cGUiOiJEb0giLCJEb21haW4iOiJodHRwczovL2Rucy5nb29nbGUvZG5zLXF1ZXJ5IiwiSVAiOiI4LjguOC44In0sIkRvbWVzdGljIjp7IlR5cGUiOiJEb1UiLCJJUCI6Ijc3Ljg4LjguOCJ9fSwiUnVsZXMiOnsiQmxvY2tQb3J0IjpbIjQ0My91ZHAiXSwiRGlyZWN0U2l0ZXMiOlsiZG9tYWluOi5ydSIsImRvbWFpbjouc3UiLCJkb21haW46LnJmIiwiZG9tYWluOi5tb3Njb3dyIiwiZG9tYWluOi5tZSIsImRvbWFpbjp5YW5kZXgubmV0IiwiZG9tYWluOnlhc3RhdGljLm5ldCIsImRvbWFpbjp5YW5kZXguY29tIiwiZG9tYWluOnZrLmNvbSIsImRvbWFpbjp2ay5tZSIsImRvbWFpbjphdml0by5zdCIsImRvbWFpbjphdml0by5jb20iLCJkb21haW46b3pvbi5jb20iLCJkb21haW46d2lsZGJlcnJpZXMuY29tIiwiZG9tYWluOnNiZXJiYW5rLmNvbSIsImRvbWFpbjpzYmVyLmNvbSIsImRvbWFpbjpzYmVyLmxpbmsiLCJkb21haW46c2Jlci5tZSIsImRvbWFpbjp0aW5rb2ZmLmNvbSIsImRvbWFpbjp0LWJhbmsuZ3JvdXAiLCJkb21haW46dnRiLmNvbSIsImRvbWFpbjphbGZhYmFuay5jb20iLCJkb21haW46ZW1pYXMuaW5mbyIsImRvbWFpbjtydXNzaWEudHJhdmVsIiwiZG9tYWluOnNrLnJ1IiwiZG9tYWluOnJ0LmNvbSIsImRvbWFpbjpzcHV0bmlrbmV3cy5jb20iLCJkb21haW46YWVyb2Zsb3QuY29tIiwiZG9tYWluOm1pci1jb25uZWN0LmNvbSIsImRvbWFpbjpoZXJtaXRhZ2VtdXNldW0ub3JnIiwiZG9tYWluOnRyZXR5YWtvdmdhbGxlcnkub3JnIiwiZG9tYWluOmJvbHNob2kub3JnIiwiZG9tYWluOm1heC5tZSIsImRvbWFpbjptYXgtY2RuLmNvbSIsImRvbWFpbjptYXgtYXBpLmNvbSIsImRvbWFpbjptYXgtY2FsbHMubmV0IiwiZG9tYWluOnNicC5tZSIsImRvbWFpbjpjZGVrLm1lIiwiZG9tYWluOm9ra28udHYiLCJkb21haW46bW9yZS50diIsImRvbWFpbjpmaXgtcHJpY2UuY29tIiwiZG9tYWluOm1hZ25pdC5jb20iLCJkb21haW46bXRzLm1lIiwiZG9tYWluOnQubWUiXSwiUHJveHlTaXRlcyI6WyJnZW9zaXRlOmNhdGVnb3J5LWFkcy1hbGwiXX19";
-            } else {
-                currentDeepLink = "happ://routing/add/eyJOYW1lIjoiUVVJQy1ETlMtT25seSIsIlJvdXRlT3JkZXIiOiJCbG9ja1Byb3h5IiwiRG9tYWluU3RyYXRlZ3kiOiJJUElmTm9uTWF0Y2giLCJETlMiOnsiUmVtb3RlIjp7IlR5cGUiOiJEb0giLCJEb21haW4iOiJodHRwczovL2Rucy5nb29nbGUvZG5zLXF1ZXJ5IiwiSVAiOiI4LjguOC44In0sIkRvbWVzdGljIjp7IlR5cGUiOiJEb1UiLCJJUCI6Ijc3Ljg4LjguOCJ9fSwiUnVsZXMiOnsiQmxvY2tQb3J0IjpbIjQ0My91ZHAiXX19";
-            }
-            
-            document.getElementById('modalAppName').innerText = "Happ (Маршрутизация)";
-            document.getElementById('modalInstruction').innerHTML = "Нажмите синюю кнопку <b>Понятно, продолжить</b>, затем подтвердите добавление правил во всплывающем окне самого приложения Happ.";
-            document.getElementById('instructionOverlay').style.display = 'flex';
-        }
-
-        // КНОПКА В МОДАЛЬНОМ ОКНЕ (ФИЗИЧЕСКИЙ ПЕРЕХОД)
-        function proceedToApp() {
-            document.getElementById('instructionOverlay').style.display = 'none';
+            // МГНОВЕННЫЙ ПЕРЕХОД (без всплывающих окон)
             window.location.href = currentDeepLink;
         }
 
