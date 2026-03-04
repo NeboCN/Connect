@@ -27,7 +27,7 @@
             width: 100%; 
             box-sizing: border-box; 
         }
-        h2 { margin-top: 0; font-size: 22px; margin-bottom: 20px; font-weight: 700; }
+        h2 { margin-top: 0; font-size: 22px; margin-bottom: 25px; font-weight: 700; }
         
         /* Стили для воронки (Стрелки и текст) */
         .arrow-down { font-size: 24px; margin: 10px 0; color: #c7c7cc; }
@@ -51,9 +51,10 @@
         }
         .btn:active { transform: scale(0.97); opacity: 0.9; }
         
-        .btn-step1 { background: #FF2D55; color: white; box-shadow: 0 4px 15px rgba(255, 45, 85, 0.3); }
-        .btn-step2 { background: #ffffff; color: #FF2D55; border: 2px solid #FF2D55; }
-        .btn-step3 { background: #007aff; color: white; box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3); }
+        /* Красные кнопки для настроек Happ */
+        .btn-red { background: #FF2D55; color: white; box-shadow: 0 4px 15px rgba(255, 45, 85, 0.3); }
+        /* Синяя кнопка для возврата в ТГ */
+        .btn-blue { background: #007aff; color: white; box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3); }
 
         /* Консервация: скрываем старые блоки, но не удаляем из DOM */
         #archived-apps { display: none !important; }
@@ -66,18 +67,15 @@
         <div id="error-block"><p style="color: #ff3b30;">Ошибка: Ссылка на профиль не найдена.</p></div>
         
         <div id="funnel-block">
-            <div class="arrow-down">⬇️</div>
-            <p class="help-text">после подключения вернитесь обратно</p>
-            <div class="arrow-down">⬇️</div>
-            <a id="step1-happ" class="btn btn-step1" href="#" onclick="silentCopy()">1 шаг Настройка подключения в клиенте</a>
+            <a id="step1-happ" class="btn btn-red" href="#" onclick="silentCopy()">1 шаг. Настройка подключения в клиенте</a>
             
             <div class="arrow-down">⬇️</div>
             <p class="help-text">после подключения вернитесь обратно</p>
             <div class="arrow-down">⬇️</div>
-            <a id="step2-routing" class="btn btn-step2" href="#">2 шаг Настройка конфигурации в клиенте</a>
+            <a id="step2-routing" class="btn btn-red" href="#">2 шаг. Настройка конфигурации в клиенте</a>
             
             <div class="arrow-down">⬇️</div>
-            <a href="tg://" class="btn btn-step3">3 шаг Вернуться в бот для завершения</a>
+            <a href="tg://" class="btn btn-blue" onclick="setTimeout(() => window.close(), 100);">3 шаг. Возврат в бот для завершения</a>
         </div>
 
         <div id="archived-apps">
