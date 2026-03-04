@@ -10,39 +10,47 @@
         h2 { margin-top: 0; font-size: 22px; margin-bottom: 10px; }
         p { color: #8e8e93; font-size: 15px; margin-bottom: 25px; line-height: 1.4; }
         #ios-block, #android-block, #pc-block, #error-block { display: none; }
+        
         .btn { display: block; width: 100%; padding: 14px 20px; margin-bottom: 12px; border-radius: 12px; font-size: 16px; font-weight: 600; text-decoration: none; color: white; border: none; cursor: pointer; box-sizing: border-box; transition: opacity 0.2s; }
         .btn:active { opacity: 0.8; }
+        
         .btn-v2box { background: #007aff; }
         .btn-happ { background: #FF2D55; }
-        .btn-routing { background: #545458; border: 2px solid #FF2D55; color: #FF2D55; background: white; font-size: 14px; padding: 10px; } /* Кнопка для роутинга */
         .btn-hiddify { background: #5856D6; }
         .btn-copy { background: #34C759; }
+        
+        /* Стили для кнопки роутинга (контурный дизайн) */
+        .btn-routing { background: transparent; border: 2px solid #FF2D55; color: #FF2D55; font-size: 15px; margin-top: -4px; margin-bottom: 20px; }
+        .btn-routing:active { background: #FF2D55; color: white; }
+
+        .toast { position: fixed; bottom: -50px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; border-radius: 20px; font-size: 14px; transition: bottom 0.3s ease; z-index: 2000; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>Установка туннеля</h2>
+        <h2>Установка защищённого туннеля</h2>
         <p id="subtitle">Выберите приложение для настройки</p>
-        <div id="error-block"><p style="color: #ff3b30;">Ошибка: Ссылка не найдена.</p></div>
+        <div id="error-block"><p style="color: #ff3b30;">Ошибка: Ссылка на профиль не найдена.</p></div>
         
         <div id="ios-block">
-            <a id="link-v2box-ios" class="btn btn-v2box" href="#">🍏 Открыть в V2Box</a>
-            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-            <a id="link-happ-ios" class="btn btn-happ" href="#">🍏 Подключить в Happ</a>
+            <a id="link-v2box-ios" class="btn btn-v2box" href="#" onclick="silentCopy()">🍏 Открыть в V2Box</a>
+            <a id="link-happ-ios" class="btn btn-happ" href="#" onclick="silentCopy()">🍏 Открыть в Happ</a>
             <a id="routing-happ-ios" class="btn btn-routing" href="#">⚡️ Настроить роутинг (Expert)</a>
         </div>
-
+        
         <div id="android-block">
-            <a id="link-happ-android" class="btn btn-happ" href="#">🤖 Подключить в Happ</a>
+            <a id="link-happ-android" class="btn btn-happ" href="#" onclick="silentCopy()">🤖 Открыть в Happ</a>
             <a id="routing-happ-android" class="btn btn-routing" href="#">⚡️ Настроить роутинг (QUIC-Fix)</a>
-            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-            <a id="link-hiddify-android" class="btn btn-hiddify" href="#">🤖 Открыть в Hiddify</a>
+            <a id="link-hiddify-android" class="btn btn-hiddify" href="#" onclick="silentCopy()">🤖 Открыть в Hiddify</a>
         </div>
-
+        
         <div id="pc-block">
             <button class="btn btn-copy" id="copyBtn" onclick="copyOnly()">📋 Скопировать ссылку</button>
+            <p style="margin-top: 15px; font-size: 13px;">Откройте приложение-клиент на ПК и вставьте ссылку.</p>
         </div>
     </div>
+
+    <div class="toast" id="toast">Ссылка скопирована!</div>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
@@ -50,6 +58,7 @@
         const name = urlParams.get('name') || 'Туннель';
         
         if (!subUrl) {
+            document.getElementById('subtitle').style.display = 'none';
             document.getElementById('error-block').style.display = 'block';
         } else {
             const userAgent = navigator.userAgent || navigator.vendor || window.opera;
@@ -61,29 +70,45 @@
                 document.getElementById('pc-block').style.display = 'block';
             }
 
+            // 1. Кодируем для V2Box и Hiddify
             const encodedUrl = encodeURIComponent(subUrl);
             const encodedName = encodeURIComponent(name);
 
-            // 1. Ссылки на подписки
-            document.getElementById('link-v2box-ios').href = "v2box://install-sub?url=" + encodedUrl + "&name=" + encodedName;
-            document.getElementById('link-hiddify-android').href = "hiddify://install-config?url=" + encodedUrl + "&name=" + encodedName;
+            const v2boxLink = "v2box://install-sub?url=" + encodedUrl + "&name=" + encodedName;
+            const hiddifyLink = "hiddify://install-config?url=" + encodedUrl + "&name=" + encodedName;
             
-            // Прямая ссылка для Happ (как мы выяснили - это самый рабочий метод)
-            const happSubLink = "happ://" + subUrl;
-            document.getElementById('link-happ-ios').href = happSubLink;
-            document.getElementById('link-happ-android').href = happSubLink;
+            // 2. Железобетонная логика HAPP (подписка)
+            const happLink = "happ://add/" + subUrl;
 
-            // 2. Ссылки на ВАШИ правила маршрутизации (Routing)
-            const routingIOS = "happ://routing/add/eyJOYW1lIjoiRmluYWwtRXhwZXJ0LUNvbXBsZXRlIiwiUm91dGVPcmRlciI6IkJsb2NrRGlyZWN0UHJveHkiLCJEb21haW5TdHJhdGVneSI6IkFzSXMiLCJETlMiOnsiUmVtb3RlIjp7IlR5cGUiOiJEb0giLCJEb21haW4iOiJodHRwczovL2Rucy5nb29nbGUvZG5zLXF1ZXJ5IiwiSVAiOiI4LjguOC44In0sIkRvbWVzdGljIjp7IlR5cGUiOiJEb1UiLCJJUCI6Ijc3Ljg4LjguOCJ9fSwiUnVsZXMiOnsiQmxyY2tQb3J0IjpbIjQ0My91ZHAiXSwiRGlyZWN0U2l0ZXMiOlsiZG9tYWluOi5ydSIsImRvbWFpbjouc3UiLCJkb21haW46LnJmIiwiZG9tYWluOi5tb3Njb3dyIiwiZG9tYWluOi5tZSIsImRvbWFpbjp5YW5kZXgubmV0IiwiZG9tYWluOnlhc3RhdGljLm5ldCIsImRvbWFpbjp5YW5kZXguY29tIiwiZG9tYWluOnZrLmNvbSIsImRvbWFpbjp2ay5tZSIsImRvbWFpbjphdml0by5zdCIsImRvbWFpbjphdml0by5jb20iLCJkb21haW46b3pvbi5jb20iLCJkb21haW46d2lsZGJlcnJpZXMuY29tIiwiZG9tYWluOnNiZXJiYW5rLmNvbSIsImRvbWFpbjpzYmVyLmNvbSIsImRvbWFpbjpzYmVyLmxpbmsiLCJkb21haW46c2Jlci5tZSIsImRvbWFpbjp0aW5rb2ZmLmNvbSIsImRvbWFpbjp0LWJhbmsuZ3JvdXAiLCJkb21haW46dnRiLmNvbSIsImRvbWFpbjphbGZhYmFuay5jb20iLCJkb21haW46ZW1pYXMuaW5mbyIsImRvbWFpbjtydXNzaWEudHJhdmVsIiwiZG9tYWluOnNrLnJ1IiwiZG9tYWluOnJ0LmNvbSIsImRvbWFpbjpzcHV0bmlrbmV3cy5jb20iLCJkb21haW46YWVyb2Zsb3QuY29tIiwiZG9tYWluOm1pci1jb25uZWN0LmNvbSIsImRvbWFpbjpoZXJtaXRhZ2VtdXNldW0ub3JnIiwiZG9tYWluOnRyZXR5YWtvdmdhbGxlcnkub3JnIiwiZG9tYWluOmJvbHNob2kub3JnIiwiZG9tYWluOm1heC5tZSIsImRvbWFpbjptYXgtY2RuLmNvbSIsImRvbWFpbjptYXgtYXBpLmNvbSIsImRvbWFpbjptYXgtY2FsbHMubmV0IiwiZG9tYWluOnNicC5tZSIsImRvbWFpbjpjZGVrLm1lIiwiZG9tYWluOm9ra28udHYiLCJkb21haW46bW9yZS50diIsImRvbWFpbjpmaXgtcHJpY2UuY29tIiwiZG9tYWluOm1hZ25pdC5jb20iLCJkb21haW46bXRzLm1lIiwiZG9tYWluOnQubWUiXSwiUHJveHlTaXRlcyI6WyJnZW9zaXRlOmNhdGVnb3J5LWFkcy1hbGwiXX19";
-            const routingAndroid = "happ://routing/add/eyJOYW1lIjoiUVVJQy1ETlMtT25seSIsIlJvdXRlT3JkZXIiOiJCbG9ja1Byb3h5IiwiRG9tYWluU3RyYXRlZ3kiOiJJUElmTm9uTWF0Y2giLCJETlMiOnsiUmVtb3RlIjp7IlR5cGUiOiJEb0giLCJEb21haW4iOiJodHRwczovL2Rucy5nb29nbGUvZG5zLXF1ZXJ5IiwiSVAiOiI4LjguOC44In0sIkRvbWVzdGljIjp7IlR5cGUiOiJEb1UiLCJJUCI6Ijc3Ljg4LjguOCJ9fSwiUnVsZXMiOnsiQmxyY2tQb3J0IjpbIjQ0My91ZHAiXX19";
+            // 3. Ваши конфигурации маршрутизации (Base64)
+            const routingIOS = "happ://routing/add/eyJOYW1lIjoiRmluYWwtRXhwZXJ0LUNvbXBsZXRlIiwiUm91dGVPcmRlciI6IkJsb2NrRGlyZWN0UHJveHkiLCJEb21haW5TdHJhdGVneSI6IkFzSXMiLCJETlMiOnsiUmVtb3RlIjp7IlR5cGUiOiJEb0giLCJEb21haW4iOiJodHRwczovL2Rucy5nb29nbGUvZG5zLXF1ZXJ5IiwiSVAiOiI4LjguOC44In0sIkRvbWVzdGljIjp7IlR5cGUiOiJEb1UiLCJJUCI6Ijc3Ljg4LjguOCJ9fSwiUnVsZXMiOnsiQmxvY2tQb3J0IjpbIjQ0My91ZHAiXSwiRGlyZWN0U2l0ZXMiOlsiZG9tYWluOi5ydSIsImRvbWFpbjouc3UiLCJkb21haW46LnJmIiwiZG9tYWluOi5tb3Njb3dyIiwiZG9tYWluOi5tZSIsImRvbWFpbjp5YW5kZXgubmV0IiwiZG9tYWluOnlhc3RhdGljLm5ldCIsImRvbWFpbjp5YW5kZXguY29tIiwiZG9tYWluOnZrLmNvbSIsImRvbWFpbjp2ay5tZSIsImRvbWFpbjphdml0by5zdCIsImRvbWFpbjphdml0by5jb20iLCJkb21haW46b3pvbi5jb20iLCJkb21haW46d2lsZGJlcnJpZXMuY29tIiwiZG9tYWluOnNiZXJiYW5rLmNvbSIsImRvbWFpbjpzYmVyLmNvbSIsImRvbWFpbjpzYmVyLmxpbmsiLCJkb21haW46c2Jlci5tZSIsImRvbWFpbjp0aW5rb2ZmLmNvbSIsImRvbWFpbjp0LWJhbmsuZ3JvdXAiLCJkb21haW46dnRiLmNvbSIsImRvbWFpbjphbGZhYmFuay5jb20iLCJkb21haW46ZW1pYXMuaW5mbyIsImRvbWFpbjtydXNzaWEudHJhdmVsIiwiZG9tYWluOnNrLnJ1IiwiZG9tYWluOnJ0LmNvbSIsImRvbWFpbjpzcHV0bmlrbmV3cy5jb20iLCJkb21haW46YWVyb2Zsb3QuY29tIiwiZG9tYWluOm1pci1jb25uZWN0LmNvbSIsImRvbWFpbjpoZXJtaXRhZ2VtdXNldW0ub3JnIiwiZG9tYWluOnRyZXR5YWtvdmdhbGxlcnkub3JnIiwiZG9tYWluOmJvbHNob2kub3JnIiwiZG9tYWluOm1heC5tZSIsImRvbWFpbjptYXgtY2RuLmNvbSIsImRvbWFpbjptYXgtYXBpLmNvbSIsImRvbWFpbjptYXgtY2FsbHMubmV0IiwiZG9tYWluOnNicC5tZSIsImRvbWFpbjpjZGVrLm1lIiwiZG9tYWluOm9ra28udHYiLCJkb21haW46bW9yZS50diIsImRvbWFpbjpmaXgtcHJpY2UuY29tIiwiZG9tYWluOm1hZ25pdC5jb20iLCJkb21haW46bXRzLm1lIiwiZG9tYWluOnQubWUiXSwiUHJveHlTaXRlcyI6WyJnZW9zaXRlOmNhdGVnb3J5LWFkcy1hbGwiXX19";
+            const routingAndroid = "happ://routing/add/eyJOYW1lIjoiUVVJQy1ETlMtT25seSIsIlJvdXRlT3JkZXIiOiJCbG9ja1Byb3h5IiwiRG9tYWluU3RyYXRlZ3kiOiJJUElmTm9uTWF0Y2giLCJETlMiOnsiUmVtb3RlIjp7IlR5cGUiOiJEb0giLCJEb21haW4iOiJodHRwczovL2Rucy5nb29nbGUvZG5zLXF1ZXJ5IiwiSVAiOiI4LjguOC44In0sIkRvbWVzdGljIjp7IlR5cGUiOiJEb1UiLCJJUCI6Ijc3Ljg4LjguOCJ9fSwiUnVsZXMiOnsiQmxvY2tQb3J0IjpbIjQ0My91ZHAiXX19";
+
+            // 4. Напрямую вшиваем в HTML-кнопки
+            document.getElementById('link-v2box-ios').href = v2boxLink;
+            document.getElementById('link-hiddify-android').href = hiddifyLink;
+            
+            document.getElementById('link-happ-ios').href = happLink;
+            document.getElementById('link-happ-android').href = happLink;
             
             document.getElementById('routing-happ-ios').href = routingIOS;
             document.getElementById('routing-happ-android').href = routingAndroid;
         }
 
+        function silentCopy() {
+            if (subUrl) { navigator.clipboard.writeText(subUrl).catch(e => {}); }
+        }
+
         function copyOnly() {
-            navigator.clipboard.writeText(subUrl);
-            alert("Ссылка скопирована!");
+            if (!subUrl) return;
+            navigator.clipboard.writeText(subUrl).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.innerText = "✅ Скопировано";
+                const toast = document.getElementById('toast');
+                toast.style.bottom = "30px";
+                setTimeout(() => { toast.style.bottom = "-50px"; }, 2500);
+                setTimeout(() => btn.innerText = "📋 Скопировать ссылку", 2000);
+            });
         }
     </script>
 </body>
